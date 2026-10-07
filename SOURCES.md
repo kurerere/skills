@@ -16,3 +16,5 @@ Matt 技能的不同版本、标点或排版差异不作为个人技能重复发
 RealEvo-Stream 的完整接口说明与原工具适配器也留在本机，公开仓库只维护个人任务路由入口。
 
 Armory 使用技能改名为 `armory-usage`；CLI 规划与实现技能合并到 `sylixos-cli-workflow`，保留兼容层、构建、目标验证和交付约定。
+
+Armory 手册检索入口并入 `armory-usage`；SylixOS 编程与系统使用手册入口合并为 `sylixos-usage`，本机资料保持原有章节和索引。

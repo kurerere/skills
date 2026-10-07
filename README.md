@@ -40,8 +40,8 @@ bash scripts/link-agents.sh
 | Unix 命令行工具移植 | `sylixos-cli-workflow` |
 | 构建、部署与调试 | `sylixos-ext-skill`、`sylixos-gdb`、`qemu-sylixos-ecs-usage` |
 | 移植经验 | `sylixos-porting`、`sylixos-socket-porting` |
-| Armory | `armory-usage`、`armory-docs` |
-| 文档查询与工具接口 | `ecs-docs`、`jsre-api`、`sylixos-docs`、`sylixos-sysusage`、`vsoa-docs`、`realevo-stream`、`rag-smart-qa` |
+| Armory | `armory-usage` |
+| 文档查询与工具接口 | `ecs-docs`、`jsre-api`、`sylixos-usage`、`vsoa-docs`、`realevo-stream`、`rag-smart-qa` |
 
 ## 维护
 
@@ -58,3 +58,5 @@ bash scripts/link-agents.sh
 ```bash
 python3 scripts/validate.py
 ```
+
+Armory 手册与发布流程合并到 `armory-usage`；SylixOS 两套手册通过 `sylixos-usage/programming`、`sylixos-usage/system` 分别检索，兼容原资料目录。

@@ -1,9 +1,19 @@
 ---
 name: armory-usage
-description: Guide packaging, sandbox verification, QEMU deployment, and release workflow for Node.js SylixOS Armory packages. Use when preparing, building, packaging, verifying, or publishing SylixOS release artifacts.
+description: 查询 Armory 制品仓库手册，并按当前项目流程执行版本校验、制品打包、安装验证与发布。
 ---
 
-# Node.js SylixOS Armory 打包与发布流水线
+# Armory 使用
+
+## 手册与接口查询
+
+仅查询使用方法、仓库配置、包管理或 API 时，先检索手册，不执行打包、安装或发布。资料根目录使用 `AGENTS_SKILL_DATA_DIR`，未设置时为 `~/.agents/skill-data`。
+
+资料位于 `<DATA_ROOT>/armory-usage/references`，兼容旧目录 `<DATA_ROOT>/armory-docs/references`。先确认目录存在，通过 `sitemap.md` 或 `rg` 搜索关键词，只读取相关章节。保留参数、返回值、版本和限制，注明来源；未知版本或当前环境差异明确说明。资料缺失时使用已配置的 RAG MCP 或官方文档查询，不编造内容。产品手册留在本机，不随公开技能发布或更新。
+
+## 打包、安装验证与发布
+
+只有任务包含这些操作时才进入下列流程；执行入口和授权范围以当前项目与用户要求为准。
 
 先读取当前仓库的 `.armoryrc.json`、Makefile、发布脚本和目标配置。下面的包名、目录和脚本是 Node.js 项目的流程；只有当前仓库采用该布局时才使用。其他 SylixOS 项目按自己的发布入口执行，保留版本、ELF、根目录解包、目标运行和发布验证要求。
 
