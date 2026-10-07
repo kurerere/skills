@@ -1,6 +1,0 @@
-interface:
-  display_name: SylixOS CLI Implement
-  short_description: Unix 命令行工具的 SylixOS 移植流程
-  default_prompt: 使用 $sylixos-cli-implement 处理本次任务。
-policy:
-  allow_implicit_invocation: false

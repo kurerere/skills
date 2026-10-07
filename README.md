@@ -37,10 +37,10 @@ bash scripts/link-agents.sh
 | 用途 | 技能 |
 | --- | --- |
 | 提交、写作与需求 | `commit`、`shuorenhua`、`features-full` |
-| Unix 命令行工具移植 | `sylixos-cli-workflow`、`sylixos-cli-implement` |
+| Unix 命令行工具移植 | `sylixos-cli-workflow` |
 | 构建、部署与调试 | `sylixos-ext-skill`、`sylixos-gdb`、`qemu-sylixos-ecs-usage` |
 | 移植经验 | `sylixos-porting`、`sylixos-socket-porting` |
-| Armory | `armory`、`armory-docs` |
+| Armory | `armory-usage`、`armory-docs` |
 | 文档查询与工具接口 | `ecs-docs`、`jsre-api`、`sylixos-docs`、`sylixos-sysusage`、`vsoa-docs`、`realevo-stream`、`rag-smart-qa` |
 
 ## 维护
@@ -49,7 +49,7 @@ bash scripts/link-agents.sh
 
 文档查询技能不附带产品手册。将已有资料放到 `~/.agents/skill-data/<skill-name>/references`，或设置 `AGENTS_SKILL_DATA_DIR` 指向自己的资料根目录，再按索引定位具体章节。资料放在技能目录之外，`npx skills update` 不会覆盖它们。RealEvo-Stream 的原工具适配器保留在 `<DATA_ROOT>/realevo-stream/scripts`，不随公开仓库分发。工具型技能仍依赖对应 IDE、MCP、工具链或虚拟机环境，安装技能不会安装这些产品。历史移植经验要先核对当前 SDK 和板卡，不能把某次错误码映射当作通用规则。
 
-`git-commit`、`ecsd-commit` 合并到 `commit`。sbase/cmd_relic 中同名但内容不同的 ECSD 技能改名为 `sylixos-cli-*`，以免覆盖真正的 ECSD 流程。
+`git-commit`、`ecsd-commit` 合并到 `commit`。sbase/cmd_relic 的规划和实现约定合并到 `sylixos-cli-workflow`。
 
 仓库不包含底层产品手册。个人检索流程和自写脚本在这里维护，第三方资料留在本地；原有素材保留各自许可。本仓库的来源记录见 [SOURCES.md](SOURCES.md)。
 

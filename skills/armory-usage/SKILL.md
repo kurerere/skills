@@ -1,5 +1,5 @@
 ---
-name: armory
+name: armory-usage
 description: Guide packaging, sandbox verification, QEMU deployment, and release workflow for Node.js SylixOS Armory packages. Use when preparing, building, packaging, verifying, or publishing SylixOS release artifacts.
 ---
 
