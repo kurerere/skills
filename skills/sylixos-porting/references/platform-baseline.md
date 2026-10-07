@@ -1,109 +1,23 @@
-# Platform baseline & API compatibility
+# 平台基线与 API 差异
 
-Guide for selecting a porting baseline and resolving platform-level API differences between SylixOS and FreeBSD/Linux/POSIX/RTOS.
+选择上游分支和处理接口差异时读取。下面是检查点，不是对所有 SylixOS 版本的能力声明；具体接口、原型和语义以当前 SDK、实现与目标验证为准。
 
-## 1. Porting baseline selection
+## 选择基线
 
-When porting third-party C/C++ libraries or runtime components to SylixOS, select the upstream baseline in the following priority order:
+比较上游各分支的实际依赖：事件后端、线程接口、内存模型、驱动接口及已有测试。选择依赖能满足、差异可控制的分支，不按 BSD 血缘、RTOS 标签或笼统 POSIX 兼容声明排序。库可能按子系统分别选用适配方案。
 
-| Upstream feature | Recommended baseline | Rationale & porting focus |
-| :--- | :--- | :--- |
-| **FreeBSD support** | **FreeBSD** (Preferred) | SylixOS shares BSD heritage in its network stack and design philosophy; POSIX/BSD API semantics align most closely, minimizing delta. |
-| **RTOS support** | **RTOS** (FreeRTOS / VxWorks) | Embedded resource constraints, task lifecycle models, and HAL abstractions map cleanly to SylixOS. |
-| **POSIX compliance only** | **POSIX baseline** | SylixOS provides comprehensive POSIX PSE52/PSE53 conformance; standard POSIX code compiles directly with minimal shim. |
-| **Linux only** | **Linux** | Direct port from Linux. Must adapt Linux-specific mechanisms: `epoll`, `hugetlbfs`, `pagemap`, UIO/VFIO, scheduler constants, and `optarg`. |
+## 检查容易混淆的接口
 
----
+| 问题 | 先核对 | 适配边界 |
+| --- | --- | --- |
+| epoll/kqueue 与 poll/select | SDK 的可用接口、触发模式、事件掩码、fd 范围、超时和关闭竞态 | 更换后端需验证事件语义；shim 也是新增依赖，不能默认引入。 |
+| cpuset、线程命名与 CPU 数量 | 类型布局、函数原型、长度限制和在线 CPU 查询 | 不凭名称相似直接 typedef 或假定原型相同。 |
+| thr_self 与 pthread_self | 调用者需要内核线程 ID 还是 pthread 句柄 | 两者不能仅按“线程 ID”字样互换。 |
+| flock 与 fcntl 锁 | 所有权、范围、继承、关闭 fd、跨进程与阻塞行为 | 不提供通用等价 shim；无等价实现时明确限制。 |
+| 匿名 mmap、连续内存与 DMA | 虚拟/物理连续性、对齐、缓存一致性、权限和设备要求 | 匿名映射不能作为 DMA 连续内存的证明。 |
+| MADV_NOCORE/DONTDUMP 等标志 | SDK 定义、运行支持、调用者的安全与功能要求 | 不用设为 0 掩盖缺失语义；只能按明确允许的降级方案处理。 |
+| optarg/optind 等 | 当前头文件是否以宏、TLS 或外部变量提供接口 | 冲突时采用实际声明方式，不复制其他版本的 extern 声明。 |
+| SCHED_OTHER/SCHED_RR | 当前常量定义与运行语义 | 数值相等时处理重复 case，但不据此宣布调度策略等价。 |
+| sysctl、huge pages、pagemap、UIO/VFIO、MMIO | 当前系统提供的能力及调用者需求 | 缺少接口时查受支持的替代方案；普通内存或构建常量不自动等价。 |
 
-## 2. SylixOS vs FreeBSD API diffs
-
-| Feature / Domain | FreeBSD | SylixOS adaptation | Implementation guide |
-| :--- | :--- | :--- | :--- |
-| **Event notification** | `kqueue` / `kevent` | `select` / `poll` | SylixOS does not support `kqueue`. Migrate event loop to POSIX `poll`/`select`, or use an abstraction layer like `libuv`/`libevent`. |
-| **CPU set type** | `cpuset_t` | `cpu_set_t` | Typedef alias or rename: `typedef cpu_set_t cpuset_t;`. |
-| **Thread ID** | `thr_self()` | `pthread_self()` | Replace with standard POSIX `pthread_self()`. |
-| **Thread naming** | `pthread_set_name_np()` | `pthread_setname_np()` | API signature difference: SylixOS follows glibc/POSIX `pthread_setname_np(thread, name)`. |
-| **CPU count** | `sysctl(HW_NCPU)` | `sysconf(_SC_NPROCESSORS_ONLN)` | Query online CPUs via POSIX standard `sysconf(_SC_NPROCESSORS_ONLN)`. |
-| **System config** | `sysctlbyname()` | `sysconf()` / build constants | SylixOS lacks BSD `sysctlbyname`. Use `sysconf()` for runtime parameters or static headers for build options. |
-| **Contiguous memory** | `contigmem` driver | `mmap(MAP_ANONYMOUS)` / DMA kernel API | Use anonymous `mmap` for user space allocations; invoke SylixOS kernel DMA allocators for hardware-contiguous buffers. |
-| **I/O privileges** | `/dev/io` | MMIO mapping | Non-x86 architectures (e.g. ARM64) use memory-mapped I/O (MMIO); direct port I/O nodes do not exist. |
-| **File locking** | `flock()` | `fcntl(fd, F_SETLK, ...)` | Replace BSD `flock` with POSIX `fcntl` record locking. |
-| **Core dump control** | `MADV_NOCORE` | No-op macro | SylixOS does not support `MADV_NOCORE`. Define as 0 / no-op: `#define MADV_NOCORE 0`. |
-
----
-
-## 3. SylixOS vs Linux API diffs
-
-| Feature / Domain | Linux | SylixOS adaptation | Implementation guide |
-| :--- | :--- | :--- | :--- |
-| **Event notification** | `epoll` (`epoll_create`/`ctl`/`wait`) | `select` / `poll` | SylixOS does not implement native `epoll`. Switch to `poll`/`select` or compile with `epoll-shim`. |
-| **Huge pages** | `hugetlbfs` / `MAP_HUGETLB` | `mmap(MAP_ANONYMOUS)` | SylixOS memory model does not expose `MAP_HUGETLB`. Fall back to standard anonymous mmap. |
-| **Physical address query** | `/proc/self/pagemap` | Dedicated kernel driver | SylixOS procfs lacks `pagemap`. Virtual-to-physical address translation requires kernel driver support. |
-| **User space I/O** | `/dev/uioN` (UIO) | SylixOS character driver | SylixOS does not support Linux UIO framework. Implement a SylixOS native driver instead. |
-| **Device passthrough** | `/dev/vfio` (VFIO) | Kernel driver / DMA mapping | SylixOS does not implement VFIO. Manage IOMMU/device access inside kernel drivers. |
-| **Thread naming** | `pthread_setname_np()` | `pthread_setname_np()` | Same signature, but enforce SylixOS task name length limit (typically <= 31 characters). |
-| **Core dump exclusion** | `MADV_DONTDUMP` | No-op macro | SylixOS ignores memory dump exclusion flags. Define `#define MADV_DONTDUMP 0`. |
-| **Command-line `optarg`** | `extern char *optarg;` | Thread-local macro | In SylixOS `<unistd.h>`, `optarg` expands to a thread-local getter macro. An explicit `extern char *optarg;` in user code produces a syntax or symbol conflict; remove the declaration or include `<unistd.h>` directly. |
-| **Scheduling policy** | `SCHED_OTHER` distinct value | `SCHED_OTHER == SCHED_RR` | In SylixOS, `#define SCHED_OTHER SCHED_RR`. Switch-case blocks handling both `case SCHED_OTHER:` and `case SCHED_RR:` fail with duplicate case errors; guard with `#if SCHED_OTHER != SCHED_RR`. |
-
----
-
-## 4. Adaptation patterns
-
-### 4.1 Guarding `optarg` declarations
-```c
-#if defined(__SYLIXOS__)
-# include <unistd.h>
-#else
-extern char *optarg;
-extern int optind, opterr, optopt;
-#endif
-```
-
-### 4.2 Handling `SCHED_OTHER` duplicate cases
-```c
-switch (policy) {
-case SCHED_FIFO:
-    /* Handle FIFO */
-    break;
-case SCHED_RR:
-    /* Handle RR */
-    break;
-#if defined(SCHED_OTHER) && (SCHED_OTHER != SCHED_RR)
-case SCHED_OTHER:
-    /* Linux distinct OTHER */
-    break;
-#endif
-default:
-    break;
-}
-```
-
-### 4.3 Fallbacks for `madvise` flags
-```c
-#ifndef MADV_DONTDUMP
-# define MADV_DONTDUMP 0
-#endif
-#ifndef MADV_NOCORE
-# define MADV_NOCORE 0
-#endif
-```
-
-### 4.4 BSD `flock()` shim via POSIX `fcntl`
-```c
-#if defined(__SYLIXOS__)
-#include <fcntl.h>
-static inline int sylixos_flock(int fd, int operation) {
-    struct flock fl;
-    fl.fl_whence = SEEK_SET;
-    fl.fl_start = 0;
-    fl.fl_len = 0;
-    if (operation & LOCK_EX) fl.fl_type = F_WRLCK;
-    else if (operation & LOCK_SH) fl.fl_type = F_RDLCK;
-    else if (operation & LOCK_UN) fl.fl_type = F_UNLCK;
-    else return -1;
-    return fcntl(fd, (operation & LOCK_NB) ? F_SETLK : F_SETLKW, &fl);
-}
-#define flock(fd, op) sylixos_flock(fd, op)
-#endif
-```
+记录选用分支的理由和行为差异；通过针对受影响语义的目标测试确认适配，而不是仅消除编译错误。

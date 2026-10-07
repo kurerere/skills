@@ -1,59 +1,20 @@
-# Build and link recipes
+# 构建、链接与加载器
 
-## Cross-build recognition without cache churn
+## Node/GYP 构建线索
 
-**Signature:** GYP does not recognize `sylixos`, host and target generated rules
-overwrite each other, or every incremental build recompiles because a macro
-containing `#` is truncated in a Make dependency record.
+仅当当前工程使用对应 Node/GYP 构建机制时调查：
 
-**Recipe:**
+- 目标未识别：检查平台识别、工具链和依赖选择，不直接借用 Linux 特性宏。
+- host/target 生成物冲突：检查生成目录及依赖规则，保留相互独立的产物。
+- 无改动却反复重编：检查配置输入、时间戳、保存的命令与 Make 依赖转义；历史记录涉及含 `#` 的宏，但当前原因须从实际规则确认。
+- 语言标准或目标切换：按组件和编译器要求配置；SDK、工具链、环境或配置变化可能需要重新配置或清理，不机械保留旧缓存。
 
-- Route the target through explicit `sylixos` branches in `configure.py`,
-  `common.gypi`, and `node.gypi`.
-- Import the SylixOS Base SDK include roots through the target configuration.
-- Keep generated intermediates separate as `obj.host/gen` and `obj.target/gen`.
-- Escape `#` when the GYP Make generator writes command dependencies; this is
-  required for definitions such as `__CONST64(x)=x##ULL`.
-- Scope the GCC 10 `gnu++2a` spelling to the SylixOS configuration while using
-  it consistently for host generators and target objects in that configuration.
-- Configure only when the target, toolchain, build options, or GYP inputs change;
-  preserve each per-target build tree for ordinary incremental builds. Use
-  `scripts/sylixos/build.sh build <platform>` or configure explicitly with
-  `./sylixos-configure --platform <platform> --output-dir out.<suffix>`
-  (`ARM64_GENERIC` -> `out.arm64`, `X86_64` -> `out.x64`); the trees are
-  independent, so switching targets never recompiles the other one. Renaming or
-  moving a build tree rewrites the directory strings embedded in every GYP
-  command and forces one full (ccache-mitigated) rebuild.
+构建命令和路径读取当前项目文档。无改动重建验证缓存行为，修改输入后验证依赖能正确触发重建。旧耗时数据不是当前正确性或性能保证。
 
-**Protected behavior:** Maglev, Sparkplug, and TurboFan remain enabled. Other
-targets keep their existing generated-directory and language-standard choices.
+## 缺失符号与 frexp 历史线索
 
-**Validation:** A no-change ARM64 Release rebuild must reuse prior objects, emit
-no host/target recipe-overwrite storm, and preserve the expected JIT feature
-configuration. The recorded Make baseline was 8.66–9.604 seconds versus about
-25.5 seconds before the dependency fixes; use timing only as supporting evidence,
-not as the correctness gate.
+加载器报告缺失符号时，核对部署二进制、链接日志/map、符号可见性、库顺序、ABI 和实际目标库版本。动态可执行文件允许由运行库解析的未定义符号，不能要求所有符号都在可执行文件中定义。
 
-## Make `frexp` self-contained in the ELF
+旧 Node 记录曾将 frexp 加载失败与静态库扫描顺序及 SDK/目标库差异联系起来，采用过委托 frexpl 的兼容桥。该因果链和数值行为未在此附证据，不能默认添加桥接符号。先查当前符号提供者及支持的构建方案；任何桥接都需证明原型、调用约定、精度和边界值行为满足契约。
 
-**Signature:** A binary linked against a newer SDK starts on an older board with
-`can not find symbol: frexp` because `libstdc++.a(math_stubs_long_double.o)` adds
-the reference after `libm.a` has been scanned and the newer `libvpmpdm.so`
-silently satisfied it at link time.
-
-**Recipe:**
-
-- Keep SylixOS system dynamic libraries in the final `libraries` list rather
-  than duplicating their paths and names in global `ldflags`.
-- Provide a narrow SylixOS `frexp` ABI bridge in the main-entry adaptation and
-  delegate it to the already-linked `frexpl` implementation.
-- Preserve the ordinary implementation on other platforms.
-
-Whole-archiving `libm.a` is outside this recipe: some long-double objects are not
-PIC. Hard-coding an SDK archive member also makes the binary SDK-version-specific.
-
-**Validation:** Run the repository ELF symbol gate on both unstripped and deploy
-artifacts. `frexp` must be a defined `GLOBAL FUNC`, not `UND`. Then run `node -v`
-on QEMU and the intended board and require a valid version with no loader symbol
-diagnostic. The executable gate is
-the current project’s ELF gate (`docs/agents/sylixos-build-verification.md` when provided).
+验证原始和部署产物一致，执行项目的符号检查及目标加载与功能测试。使用 whole-archive、改变库顺序或混用库版本前检查重复符号、PIC 和依赖影响。

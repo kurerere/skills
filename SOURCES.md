@@ -22,3 +22,5 @@ Armory 手册检索入口并入 `armory-usage`；SylixOS 编程与系统使用�
 `rag-smart-qa` 是第三方技能，来源为本地 Hermes（AcoPilot 内置）技能库，不在本仓库维护；已安装的全局版本保留。
 
 需求完善技能 `features-full` 改名为 `refine-requirements`，用于创建或补全需求，保留用户手动调用方式。
+
+`sylixos-porting` 的旧项目经验缺少随包发布的完整版本与原始验证记录，现作为调查线索维护；使用前以当前源码和目标证据重建适用条件。

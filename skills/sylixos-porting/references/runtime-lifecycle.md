@@ -1,40 +1,17 @@
-# Runtime lifecycle recipes
+# 初始化与退出生命周期
 
-## Export the main-module runtime symbol
+## 主模块 ABI 符号
 
-**Signature:** the SylixOS dynamic loader cannot complete main-module
-initialization or destruction because `__dso_handle` is absent.
+旧 SylixOS Node 适配有过 __dso_handle 相关处理，但该符号由谁提供取决于工具链、启动对象和运行库。先核对初始化/析构失败证据、符号定义与引用，再判断是否需要调整可见性或链接；不能默认新增或重复定义符号。
 
-**Recipe:** Export `__dso_handle` from the SylixOS main-entry adaptation and keep
-the change scoped to that target.
+验证加载、初始化、析构与正常退出。仅加载器不报错不能证明全部生命周期正确。
 
-**Validation:** Require a clean loader gate, basic JavaScript execution, and
-normal main-module teardown.
+## 后台线程导致退出等待
 
-## Tear down background threads before process return
+旧 Node 记录将退出挂起与进程等待线程、库析构顺序及 SignalInspector/libuv 工作线程关联。本参考缺少完整版本和原始证据，应在当前项目核对退出模式、线程所有权、唤醒、join 和析构顺序。
 
-**Signature:** SylixOS uses `LW_VPROC_EXIT_NORMAL`, waits for process threads
-before running ELF destructors, while libuv historically waited until its
-destructor to stop workers. Natural exit or `process.exit()` can therefore wait
-forever on background workers or the SignalInspector watchdog.
+只有目标仍会等待这些线程且关闭时机满足库契约时，才设计显式停止与回收流程。uv_library_shutdown 是进程级操作，核对当前版本的允许调用时机、多 Environment 使用和之后是否还需调用 libuv；不能在任意 Environment 清理时无条件执行。
 
-**Recipe:**
+不要为退出问题顺带修改信号屏蔽策略。强制终止或 _exit 会改变清理语义，若使用须作为明确的降级说明。
 
-- Make the SylixOS SignalInspector watchdog explicitly stoppable and joinable;
-  use idempotent state, wake its semaphore, and join it during Environment
-  cleanup and the explicit-exit handler.
-- Preserve `SIGKILL` and `SIGSTOP` outside the blocked signal set.
-- Call `uv_library_shutdown()` in the SylixOS `TearDownOncePerProcess()` path
-  before platform destruction and before the main thread returns.
-- Keep `LW_VPROC_EXIT_NORMAL` and return `node::Start()`'s real exit code.
-
-Forced process mode and `_exit()` bypass lifecycle correctness and are outside
-this recipe.
-
-**Validation:** Run CJS and ESM natural exit plus explicit `process.exit()` with
-nonzero status, require exact exit codes, and verify worker/watchdog threads are
-gone. The recorded regression passed twice on QEMU.
-
-**Boundary:** This recipe covers ordinary non-interactive shutdown. A TTY read
-blocked in `tty_rsync` is a separate unresolved cancellation defect and must use
-the target debugging guide rather than being classified as this recipe failing.
+目标验证应覆盖自然退出、显式退出、非零退出码和实际线程回收；Node 项目可分别覆盖 CJS/ESM、多 Environment 和资源仍活动的情况。TTY 或其他阻塞资源须按当前证据区分原因，不能预先排除其与退出逻辑的关联。旧 QEMU 结果不证明当前目标已通过。

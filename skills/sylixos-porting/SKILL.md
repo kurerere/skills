@@ -1,49 +1,37 @@
 ---
 name: sylixos-porting
-description: 将 C/C++ 库、命令行工具或运行时移植到 SylixOS，处理平台基线、API 差异、构建链接和运行行为；按当前项目和 SDK 选择适用的移植经验。
+description: 将 C/C++ 库、命令行工具或运行时移植到 SylixOS，分析平台接口、构建链接和运行行为；按当前源码、SDK 与目标证据选择适配方案。
 ---
 
 # SylixOS 移植
 
-先读取当前项目约定、相关源码、构建配置和测试，确认目标架构、SDK、系统版本与运行环境。构建命令、板卡地址、路径和验收条件来自当前项目或用户配置。
+先读当前项目约定、相关源码、构建配置与测试，确认目标架构、SDK、系统和组件版本。项目指定的构建入口、运行环境和验收条件优先。
 
-## 通用要求
+## 工作原则
 
-- 明确需要保持的上游行为和允许的平台差异。命令行工具保持参数、输出、错误语义与退出状态；库保持接口契约和资源生命周期。
-- 根据当前 SDK 头文件、实现和目标行为选择 FreeBSD、Linux、POSIX 或 RTOS 基线，不仅凭接口名称判定兼容。
-- 平台差异集中到既有兼容层或最小平台分支，复用公共函数，保留其他平台行为。
-- 故障先复现并定位失败接口。历史方案只有在失败特征和适用前提一致时才能使用。
-- 使用项目已有构建入口。链接与部署时检查架构、ABI、动态依赖和未解析符号，执行项目已有的 ELF 检查。
-- 验证正常、错误和边界行为。系统调用、文件系统、信号、进程、网络和终端行为须在指定 SylixOS 目标复核；主机测试不能替代目标验证。
+- 明确要保持的接口、资源生命周期和外部行为。命令行工具还要保持参数、输出、错误语义与退出状态；必要的差异应明确说明。
+- 根据实际依赖选择上游适配分支。FreeBSD、Linux、POSIX、RTOS 没有固定优先级；接口同名不保证语义相同。
+- 故障先复现并定位。区分源码事实、原因推测、临时绕过与已验证修复，平台差异集中在最小适配范围。
+- 使用当前项目的构建入口和检查。链接或部署时核对架构、ABI、依赖和目标符号解析；存在未定义符号不直接等于链接失败，须核对提供者。
+- 按受影响行为验证正常、错误与边界情况。涉及目标系统行为时在指定 SylixOS 目标复核；主机结果和其他版本的模拟器结果不替代目标证据。
 
-板卡传输和命令执行使用 `$sylixos-ext-skill`；远程调试使用 `$sylixos-gdb`，先确认架构和工具链适用。交付时报告实际验证结果、未验证项和环境限制。
+板卡操作可使用 `$sylixos-ext-skill`，远程调试可使用 `$sylixos-gdb`；先核对技能的架构、工具链与当前任务是否适用。交付时报告实际结果、未验证项和适用范围。
 
-## 专项经验
+## 按问题读取参考
 
-按问题选择以下参考。Node、GYP、V8、libuv 的记录只用于相应组件，其构建命令、路径和验证要求不套用到其他项目。
+- 上游基线、平台 API 与语义差异：[platform-baseline.md](references/platform-baseline.md)。
+- 构建缓存、链接与加载器符号：[build-and-link.md](references/build-and-link.md)。
+- V8 平台层、内存与 ARM64 JIT：[v8.md](references/v8.md)。
+- errno 来源与非阻塞连接：[socket-errors.md](references/socket-errors.md)。
+- libuv 非阻塞状态与连接完成：[libuv-network.md](references/libuv-network.md)。
+- Node/库的初始化、线程退出与 ABI 符号：[runtime-lifecycle.md](references/runtime-lifecycle.md)。
 
-- Baseline selection (FreeBSD/Linux/POSIX/RTOS) or platform API diffs (`epoll`, `kqueue`, `optarg`, `SCHED_OTHER`, file locks, memory mapping): read
-  [references/platform-baseline.md](references/platform-baseline.md).
-- Build configuration, incremental rebuilds, or loader/link symbols: read
-  [references/build-and-link.md](references/build-and-link.md).
-- V8 platform memory, CodeRange, or ARM64 JIT addressability: read
-  [references/v8.md](references/v8.md).
-- 套接字内核错误泄漏、非阻塞连接和 errno 来源：读取 [references/socket-errors.md](references/socket-errors.md)，先核对当前 SDK 与目标证据。
-- libuv socket nonblocking or connect completion: read
-  [references/libuv-network.md](references/libuv-network.md).
-- Node startup, background-thread teardown, or exit-code preservation: read
-  [references/runtime-lifecycle.md](references/runtime-lifecycle.md).
+只读取相关分支。参考中的 Node、GYP、V8、libuv、sbase/cmd_relic 经验是历史调查线索；本技能未附可复核的源码版本、原始日志和完整测试记录，不能据此宣称已验证或直接实施旧补丁。
 
-## 使用和维护经验
+## 应用与维护
 
-应用方案前复现记录中的失败特征，核对当前源码、SDK 和目标满足其前提。执行方案对应的验证及当前项目的回归检查；不满足前提时重新诊断。
+使用历史方案前，确认失败特征、源码路径和版本前提一致，并用当前目标证据支持原因判断。症状相近但前提不同的，应重新诊断。
 
-新增经验须记录修复前的复现条件、改动范围、目标验证结果、相关回归结果和适用版本。未解决故障和临时绕过留在当前项目的诊断文档，不能作为已验证方案。
+新增经验应注明组件与 SDK/目标版本、源码位置、修复前复现条件、改动、目标结果和回归边界，链接项目内可复核证据。缺少证据时标为推测或待验证。
 
-## Current exclusions
-
-The accelerated OpenSSL/TLS crash, no-assembly workaround, TTY read cancellation,
-spawn/`cwd`, cluster/IPC convergence, debugger residual processes, intermittent
-heap aborts, UDP `SO_REUSEPORT` selection, and TCP/HTTP vector-write CPU behavior
-are unresolved evidence. Use the current project’s diagnostic guide for them rather than treating
-them as recipes.
+故障是否已解决由当前项目记录与证据决定；全局技能不维护项目的实时故障清单。构建成功只证明构建，不证明运行正确。
