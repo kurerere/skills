@@ -18,3 +18,5 @@ RealEvo-Stream 的完整接口说明与原工具适配器也留在本机，公�
 Armory 使用技能改名为 `armory-usage`；CLI 规划与实现技能合并到 `sylixos-cli-workflow`，保留兼容层、构建、目标验证和交付约定。
 
 Armory 手册检索入口并入 `armory-usage`；SylixOS 编程与系统使用手册入口合并为 `sylixos-usage`，本机资料保持原有章节和索引。
+
+`rag-smart-qa` 是第三方技能，来源为本地 Hermes（AcoPilot 内置）技能库，不在本仓库维护；已安装的全局版本保留。
