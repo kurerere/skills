@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit"
+  short_description: "Conventional Commit 提交信息规范"
+  default_prompt: "使用 $commit 规范化本次提交信息。"
