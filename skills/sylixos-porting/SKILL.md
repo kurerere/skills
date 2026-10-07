@@ -28,6 +28,7 @@ description: 将 C/C++ 库、命令行工具或运行时移植到 SylixOS，处�
   [references/build-and-link.md](references/build-and-link.md).
 - V8 platform memory, CodeRange, or ARM64 JIT addressability: read
   [references/v8.md](references/v8.md).
+- 套接字内核错误泄漏、非阻塞连接和 errno 来源：读取 [references/socket-errors.md](references/socket-errors.md)，先核对当前 SDK 与目标证据。
 - libuv socket nonblocking or connect completion: read
   [references/libuv-network.md](references/libuv-network.md).
 - Node startup, background-thread teardown, or exit-code preservation: read

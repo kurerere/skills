@@ -38,7 +38,7 @@ bash scripts/link-agents.sh
 | --- | --- |
 | 提交、写作与需求 | `commit`、`shuorenhua`、`refine-requirements` |
 | 构建、部署与调试 | `sylixos-ext-skill`、`sylixos-gdb`、`qemu-sylixos-ecs-usage` |
-| 移植经验 | `sylixos-porting`、`sylixos-socket-porting` |
+| 移植经验 | `sylixos-porting` |
 | Armory | `armory-usage` |
 | 文档查询与工具接口 | `ecs-docs`、`jsre-api`、`sylixos-usage`、`vsoa-docs`、`realevo-stream` |
 

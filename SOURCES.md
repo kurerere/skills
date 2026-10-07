@@ -6,7 +6,7 @@
 - 项目 `jsre-api` 与全局版本的主要差异是旧链接格式；采用全局修正过的版本。
 - 中文提交技能采用全局 `commit`，补充尊重用户已选暂存范围的规则。旧 `git-commit` 的自动暂存所有改动、模型署名，以及 `ecsd-commit` 的固定正文要求不再复制。
 - sbase/cmd_relic 的命令行工具流程单独命名为 `sylixos-porting`。
-- `sylixos-socket-porting` 保留原移植记录，补充适用条件，禁止仅凭数值把内核错误当成连接拒绝。
+- 套接字移植经验并入 `sylixos-porting/references/socket-errors.md`，保留适用条件和验证边界，不提供全局错误码映射。
 - Armory 和 GDB 的目标选择以当前项目配置为准，避免全局技能中的 QEMU 示例覆盖实板默认值。
 
 Matt 技能的不同版本、标点或排版差异不作为个人技能重复发布。飞书、Impeccable、Archify、shadcn 等第三方技能继续保留其安装来源。
