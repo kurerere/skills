@@ -18,6 +18,7 @@
 - 构建缓存、链接与加载器符号：[build-and-link.md](porting/build-and-link.md)。
 - V8 平台层、内存与 ARM64 JIT：[v8.md](porting/v8.md)。
 - 文件写入后 mmap 视图陈旧、数据库页异常或 remap/msync 适配：[file-mapping.md](porting/file-mapping.md)。
+- Go 等运行时的 sysUnused、匿名堆页回收与固定地址权限切换：[memory-reclaim.md](porting/memory-reclaim.md)。
 - errno 来源与非阻塞连接：[socket-errors.md](porting/socket-errors.md)。
 - libuv 非阻塞状态与连接完成：[libuv-network.md](porting/libuv-network.md)。
 - Node/库的初始化、线程退出与 ABI 符号：[runtime-lifecycle.md](porting/runtime-lifecycle.md)。
