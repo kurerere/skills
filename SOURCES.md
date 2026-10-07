@@ -20,3 +20,5 @@ Armory 使用技能改名为 `armory-usage`；CLI 规划与实现技能合并到
 Armory 手册检索入口并入 `armory-usage`；SylixOS 编程与系统使用手册入口合并为 `sylixos-usage`，本机资料保持原有章节和索引。
 
 `rag-smart-qa` 是第三方技能，来源为本地 Hermes（AcoPilot 内置）技能库，不在本仓库维护；已安装的全局版本保留。
+
+需求完善技能 `features-full` 改名为 `refine-requirements`，用于创建或补全需求，保留用户手动调用方式。

@@ -36,7 +36,7 @@ bash scripts/link-agents.sh
 
 | 用途 | 技能 |
 | --- | --- |
-| 提交、写作与需求 | `commit`、`shuorenhua`、`features-full` |
+| 提交、写作与需求 | `commit`、`shuorenhua`、`refine-requirements` |
 | Unix 命令行工具移植 | `sylixos-cli-workflow` |
 | 构建、部署与调试 | `sylixos-ext-skill`、`sylixos-gdb`、`qemu-sylixos-ecs-usage` |
 | 移植经验 | `sylixos-porting`、`sylixos-socket-porting` |
