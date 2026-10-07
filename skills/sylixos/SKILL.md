@@ -11,7 +11,7 @@ description: SylixOS 及 ECS、JSRE、VSOA、RealEvo-Stream、Armory 相关任�
 
 | 任务 | 参考 |
 | --- | --- |
-| SylixOS 编程/API/Shell、系统配置，ECS、JSRE、VSOA 或 Armory 手册 | [手册检索](references/docs.md) |
+| SylixOS 编程/API/Shell、系统配置，ECS、JSRE、VSOA 或 Armory 手册 | [在线优先的文档查询](references/docs.md) |
 | C/C++ 库、命令行工具和运行时移植，平台差异与兼容性审查 | [移植](references/porting.md)，再按问题读取其中专项 |
 | 发送目标命令、传输文件、部署或运行程序 | [板卡操作](references/board-operations.md) |
 | 编写目标命令、startup.sh、shfile 或 system/popen 命令字符串 | [目标 Shell](references/shell.md)，操作板卡时也必须读取 |

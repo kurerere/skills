@@ -40,7 +40,7 @@ bash scripts/link-agents.sh
 | SylixOS 生态查询、移植、板卡操作、调试与制品管理 | `sylixos` |
 | ECS QEMU 虚拟机管理 | `qemu-sylixos-ecs-usage` |
 
-`sylixos` 按任务读取专项参考，不因查询手册而触发部署或发布。旧的九个 SylixOS 相关入口已合并；旧安装的移除与新入口安装分开处理，不能假定 `npx skills update` 会删除旧名称。本机已完成迁移。
+`sylixos` 按任务读取专项参考，文档查询优先使用可用的 AcoHub MCP；本地资料用于离线、在线未覆盖或指定历史版本。在线片段不保证最新，需核对来源和版本。查询不触发部署或发布。旧的九个 SylixOS 相关入口已合并；旧安装的移除与新入口安装分开处理，不能假定 `npx skills update` 会删除旧名称。本机已完成迁移。
 
 ## 维护
 

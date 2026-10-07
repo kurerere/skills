@@ -11,3 +11,5 @@
 - 需求完善技能 `features-full` 改名为 `refine-requirements`，用于创建或补全需求，保持手动调用。
 
 Matt、飞书、Impeccable、Archify、shadcn 等第三方原版继续从原来源安装，不重复发布。`rag-smart-qa` 来源为本地 Hermes（AcoPilot 内置）技能库，不在本仓库维护，已安装的全局版本保留。
+
+文档入口经 AcoHub MCP 与本地切片抽样比较后采用在线优先、本地回退。在线覆盖更广，部分精确 API 查询仍依赖本地；知识库原文和对比片段不进入公开仓库。
