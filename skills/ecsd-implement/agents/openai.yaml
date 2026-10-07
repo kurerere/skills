@@ -1,6 +1,0 @@
-interface:
-  display_name: "ECSD++ Implement"
-  short_description: "Implement approved ECSD++ work with staged validation"
-  default_prompt: "Use $ecsd-implement to implement the approved ECSD++ spec or tickets and complete validation and handoff."
-policy:
-  allow_implicit_invocation: false

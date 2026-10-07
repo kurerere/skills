@@ -1,4 +1,0 @@
-interface:
-  display_name: "ECSD++ Development Workflow"
-  short_description: "ECSD++ 功能、Bug 与板卡验证的标准交付流程"
-  default_prompt: "使用 $ecsd-development-workflow 按规划、实现、验证、审查和交付阶段执行本次 ECSD++ 任务。"

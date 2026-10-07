@@ -37,7 +37,6 @@ bash scripts/link-agents.sh
 | 用途 | 技能 |
 | --- | --- |
 | 提交、写作与需求 | `commit`、`shuorenhua`、`features-full` |
-| ECSD 开发 | `ecsd-development-workflow`、`ecsd-implement` |
 | Unix 命令行工具移植 | `sylixos-cli-workflow`、`sylixos-cli-implement` |
 | 构建、部署与调试 | `win-host-build`、`upload-ftp`、`sylixos-ext-skill`、`sylixos-gdb`、`qemu-sylixos-ecs-usage` |
 | 移植经验 | `sylixos-porting`、`sylixos-socket-porting` |
