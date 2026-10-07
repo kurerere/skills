@@ -1,26 +1,13 @@
 # 来源与整理说明
 
-当前版本整理自个人全局技能，以及 `_mksh`、`ecsd++`、`ecsd2`、`sbase`、`cmd_relic`、Node 等工作区中的自定义技能。
+个人技能整理自全局安装，以及 `_mksh`、`ecsd++`、`ecsd2`、`sbase`、`cmd_relic`、Node 等工作区中的自定义内容。
 
-- 全局已维护的个人技能作为基线，保留自写脚本与个人移植经验；底层产品手册在本地单独存放。
-- 项目 `jsre-api` 与全局版本的主要差异是旧链接格式；采用全局修正过的版本。
-- 中文提交技能采用全局 `commit`，补充尊重用户已选暂存范围的规则。旧 `git-commit` 的自动暂存所有改动、模型署名，以及 `ecsd-commit` 的固定正文要求不再复制。
-- sbase/cmd_relic 的命令行工具流程单独命名为 `sylixos-porting`。
-- 套接字移植经验并入 `sylixos-porting/references/socket-errors.md`，保留适用条件和验证边界，不提供全局错误码映射。
-- Armory 和 GDB 的目标选择以当前项目配置为准，避免全局技能中的 QEMU 示例覆盖实板默认值。
+- `sylixos` 合并原 `ecs-docs`、`jsre-api`、`sylixos-usage`、`vsoa-docs`、`realevo-stream`、`sylixos-ext-skill`、`sylixos-gdb`、`sylixos-porting`、`armory-usage`。主入口路由到专项参考，FTP/Telnet 自写脚本原样迁移。
+- 底层 SylixOS、ECS、JSRE、VSOA、Armory 手册，以及 RealEvo 原适配器不进入公开仓库，原本地资料目录和许可信息保留。
+- Node/V8/libuv 和 sbase/cmd_relic 的移植记录缺少随包发布的完整版本与原始验证资料，作为历史调查线索维护；不能据此声称当前方案已验证。
+- GDB、Shell 和 Armory 的项目特例改为有条件的参考。当前项目负责目标地址、架构、构建命令、产物布局与验收标准。
+- `qemu-sylixos-ecs-usage` 保持独立，虚拟机管理内容和资源未改动。
+- 中文提交技能采用个人 `commit`，尊重用户已选暂存范围；不保留旧技能的模型署名或固定正文要求。
+- 需求完善技能 `features-full` 改名为 `refine-requirements`，用于创建或补全需求，保持手动调用。
 
-Matt 技能的不同版本、标点或排版差异不作为个人技能重复发布。飞书、Impeccable、Archify、shadcn 等第三方技能继续保留其安装来源。
-
-`*-docs`、`jsre-api` 只发布个人检索入口，原 SylixOS、ECS、Armory、VSOA、JSRE 手册切片不进入 Git 仓库。运行示例使用文档地址，不发布原有内网端点。
-
-RealEvo-Stream 的完整接口说明与原工具适配器也留在本机，公开仓库只维护个人任务路由入口。
-
-Armory 使用技能改名为 `armory-usage`；CLI 规划与实现技能合并到 `sylixos-porting`，保留兼容层、构建、目标验证和交付约定。
-
-Armory 手册检索入口并入 `armory-usage`；SylixOS 编程与系统使用手册入口合并为 `sylixos-usage`，本机资料保持原有章节和索引。
-
-`rag-smart-qa` 是第三方技能，来源为本地 Hermes（AcoPilot 内置）技能库，不在本仓库维护；已安装的全局版本保留。
-
-需求完善技能 `features-full` 改名为 `refine-requirements`，用于创建或补全需求，保留用户手动调用方式。
-
-`sylixos-porting` 的旧项目经验缺少随包发布的完整版本与原始验证记录，现作为调查线索维护；使用前以当前源码和目标证据重建适用条件。
+Matt、飞书、Impeccable、Archify、shadcn 等第三方原版继续从原来源安装，不重复发布。`rag-smart-qa` 来源为本地 Hermes（AcoPilot 内置）技能库，不在本仓库维护，已安装的全局版本保留。

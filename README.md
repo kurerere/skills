@@ -37,18 +37,18 @@ bash scripts/link-agents.sh
 | 用途 | 技能 |
 | --- | --- |
 | 提交、写作与需求 | `commit`、`shuorenhua`、`refine-requirements` |
-| 构建、部署与调试 | `sylixos-ext-skill`、`sylixos-gdb`、`qemu-sylixos-ecs-usage` |
-| 移植经验 | `sylixos-porting` |
-| Armory | `armory-usage` |
-| 文档查询与工具接口 | `ecs-docs`、`jsre-api`、`sylixos-usage`、`vsoa-docs`、`realevo-stream` |
+| SylixOS 生态查询、移植、板卡操作、调试与制品管理 | `sylixos` |
+| ECS QEMU 虚拟机管理 | `qemu-sylixos-ecs-usage` |
+
+`sylixos` 按任务读取专项参考，不因查询手册而触发部署或发布。旧的九个 SylixOS 相关入口已合并；旧安装的移除与新入口安装分开处理，不能假定 `npx skills update` 会删除旧名称。本机已完成迁移。
 
 ## 维护
 
 每项技能放在 `skills/<name>/`，入口为 `SKILL.md`，随技能安装的脚本和参考资料使用相对路径。`<SKILL_DIR>` 指当前安装的 `SKILL.md` 所在目录。
 
-文档查询技能不附带产品手册。将已有资料放到 `~/.agents/skill-data/<skill-name>/references`，或设置 `AGENTS_SKILL_DATA_DIR` 指向自己的资料根目录，再按索引定位具体章节。资料放在技能目录之外，`npx skills update` 不会覆盖它们。RealEvo-Stream 的原工具适配器保留在 `<DATA_ROOT>/realevo-stream/scripts`，不随公开仓库分发。工具型技能仍依赖对应 IDE、MCP、工具链或虚拟机环境，安装技能不会安装这些产品。历史移植经验要先核对当前 SDK 和板卡，不能把某次错误码映射当作通用规则。
+`sylixos` 的手册索引映射见 [手册检索](skills/sylixos/references/docs.md)。已有资料继续放在原来的 `~/.agents/skill-data` 子目录，或由 `AGENTS_SKILL_DATA_DIR` 指定资料根目录，合并技能不重命名资料目录。RealEvo 原适配器仍位于 `<DATA_ROOT>/realevo-stream/scripts`。技能安装不会安装 IDE、MCP、SDK、调试器、手册或虚拟机。
 
-`git-commit`、`ecsd-commit` 合并到 `commit`。sbase/cmd_relic 的规划和实现约定合并到 `sylixos-porting`。
+`git-commit`、`ecsd-commit` 合并到 `commit`；需求完善技能使用 `refine-requirements` 并保持手动调用。移植历史经验须核对当前源码、SDK 和目标证据，不能把旧补丁作为通用默认值。
 
 仓库不包含底层产品手册。个人检索流程和自写脚本在这里维护，第三方资料留在本地；原有素材保留各自许可。本仓库的来源记录见 [SOURCES.md](SOURCES.md)。
 
@@ -57,5 +57,3 @@ bash scripts/link-agents.sh
 ```bash
 python3 scripts/validate.py
 ```
-
-Armory 手册与发布流程合并到 `armory-usage`；SylixOS 两套手册通过 `sylixos-usage/programming`、`sylixos-usage/system` 分别检索，兼容原资料目录。

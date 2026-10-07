@@ -1,4 +1,0 @@
-interface:
-  display_name: "SylixOS GDB"
-  short_description: "当前项目 SylixOS ARM64 远程 GDB 调试与故障排查"
-  default_prompt: "Use $sylixos-gdb to connect to a SylixOS target and diagnose the remote process."

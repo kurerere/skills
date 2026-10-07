@@ -34,7 +34,7 @@ def inspect(root):
         if set(front) - allowed:
             errors.append(f'{entry}: unsupported fields {set(front)-allowed}')
         # Index destinations are on a single line; <> allows filename parentheses.
-        for file in [entry, *entry.parent.glob('references/sitemap.md')]:
+        for file in entry.parent.rglob('*.md'):
             for line in file.read_text().splitlines():
                 for m in re.finditer(r'\[[^\]\n]+\]\((<[^>]+>|[^)]+)\)', line):
                     dest = m[1].strip('<>')

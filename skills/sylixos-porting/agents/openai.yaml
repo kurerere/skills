@@ -1,4 +1,0 @@
-interface:
-  display_name: "SylixOS 移植"
-  short_description: "移植 C/C++ 库、命令行工具与运行时，按项目选择平台兼容经验"
-  default_prompt: "使用 $sylixos-porting 分析当前项目的平台差异，完成适用的移植修改与验证。"

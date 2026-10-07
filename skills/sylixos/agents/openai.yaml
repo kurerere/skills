@@ -1,0 +1,4 @@
+interface:
+  display_name: "SylixOS"
+  short_description: "查询 SylixOS 生态手册，按任务进行移植、板卡操作、调试与制品管理"
+  default_prompt: "使用 $sylixos 按当前项目配置处理任务，只加载相关参考并报告实际验证结果。"

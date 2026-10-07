@@ -1,8 +1,3 @@
----
-name: sylixos-porting
-description: 将 C/C++ 库、命令行工具或运行时移植到 SylixOS，分析平台接口、构建链接和运行行为；按当前源码、SDK 与目标证据选择适配方案。
----
-
 # SylixOS 移植
 
 先读当前项目约定、相关源码、构建配置与测试，确认目标架构、SDK、系统和组件版本。项目指定的构建入口、运行环境和验收条件优先。
@@ -15,16 +10,16 @@ description: 将 C/C++ 库、命令行工具或运行时移植到 SylixOS，分�
 - 使用当前项目的构建入口和检查。链接或部署时核对架构、ABI、依赖和目标符号解析；存在未定义符号不直接等于链接失败，须核对提供者。
 - 按受影响行为验证正常、错误与边界情况。涉及目标系统行为时在指定 SylixOS 目标复核；主机结果和其他版本的模拟器结果不替代目标证据。
 
-板卡操作可使用 `$sylixos-ext-skill`，远程调试可使用 `$sylixos-gdb`；先核对技能的架构、工具链与当前任务是否适用。交付时报告实际结果、未验证项和适用范围。
+板卡操作读取 [board-operations.md](board-operations.md)，远程调试读取 [gdb.md](gdb.md)；先核对架构、工具链与当前任务是否适用。交付时报告实际结果、未验证项和适用范围。
 
 ## 按问题读取参考
 
-- 上游基线、平台 API 与语义差异：[platform-baseline.md](references/platform-baseline.md)。
-- 构建缓存、链接与加载器符号：[build-and-link.md](references/build-and-link.md)。
-- V8 平台层、内存与 ARM64 JIT：[v8.md](references/v8.md)。
-- errno 来源与非阻塞连接：[socket-errors.md](references/socket-errors.md)。
-- libuv 非阻塞状态与连接完成：[libuv-network.md](references/libuv-network.md)。
-- Node/库的初始化、线程退出与 ABI 符号：[runtime-lifecycle.md](references/runtime-lifecycle.md)。
+- 上游基线、平台 API 与语义差异：[platform-baseline.md](porting/platform-baseline.md)。
+- 构建缓存、链接与加载器符号：[build-and-link.md](porting/build-and-link.md)。
+- V8 平台层、内存与 ARM64 JIT：[v8.md](porting/v8.md)。
+- errno 来源与非阻塞连接：[socket-errors.md](porting/socket-errors.md)。
+- libuv 非阻塞状态与连接完成：[libuv-network.md](porting/libuv-network.md)。
+- Node/库的初始化、线程退出与 ABI 符号：[runtime-lifecycle.md](porting/runtime-lifecycle.md)。
 
 只读取相关分支。参考中的 Node、GYP、V8、libuv、sbase/cmd_relic 经验是历史调查线索；本技能未附可复核的源码版本、原始日志和完整测试记录，不能据此宣称已验证或直接实施旧补丁。
 
