@@ -4,17 +4,32 @@
 
 ## 安装与更新
 
-需要能访问这台 Git 服务器的网络。全局安装到 `~/.agents/skills`，供 Claude Code 和 Codex 使用：
+需要能访问这台 Git 服务器的网络。默认安装 `commit`、`shuorenhua`、`refine-requirements`，全局放在 `~/.agents/skills`，供 Claude Code、Codex 和 Zcode 使用：
 
 ```bash
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex -s '*' -y
+npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -y
 ```
 
-只安装某个技能时，把 `'*'` 换成名称，例如 `commit` 或 `shuorenhua`。查看仓库中的技能：
+SylixOS 和 QEMU 技能按需安装，可分别执行：
+
+```bash
+npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s sylixos -y
+npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s qemu-sylixos-ecs-usage -y
+```
+
+查看默认技能：
 
 ```bash
 npx skills add http://100.77.36.66:3000/wangjijie/skills.git --list
 ```
+
+查看全部五项，包括可选技能：
+
+```bash
+INSTALL_INTERNAL_SKILLS=1 npx skills add http://100.77.36.66:3000/wangjijie/skills.git --list
+```
+
+可选项使用 skills CLI 的 `metadata.internal` 排除默认发现；CLI 1.7.1 支持通过 `-s <名称>` 显式安装。若要一次安装五项，设置 `INSTALL_INTERNAL_SKILLS=1` 后执行默认安装命令。已有安装保留，修改默认名单不会卸载可选技能，也不改变它们安装后的调用方式。
 
 更新已安装的全局技能：
 
@@ -22,9 +37,9 @@ npx skills add http://100.77.36.66:3000/wangjijie/skills.git --list
 npx skills update -g -y
 ```
 
-这会同时检查其他来源的全局技能。只更新本仓库的一项可用 `npx skills update commit -g -y`；重新执行安装命令也可以同步本仓库的全部技能。以上命令按 skills CLI 1.7.1 验证，自建 Git URL 的来源和路径会记录在全局安装锁文件中。
+这会同时检查其他来源的全局技能。只更新本仓库的一项可用 `npx skills update commit -g -y`；重新执行对应安装命令也可以同步选中的技能。以上命令按 skills CLI 1.7.1 验证，自建 Git URL 的来源和路径会记录在全局安装锁文件中。
 
-skills CLI 目前没有 zcode 适配。它可以共用同一份目录；在仓库检出目录运行下面的脚本，也会补齐 Codex 的旧目录入口：
+skills CLI 已支持 Zcode。三个 Agent 共用同一份技能；如需补齐 Codex 的旧目录入口，可在仓库检出目录运行：
 
 ```bash
 bash scripts/link-agents.sh
@@ -34,11 +49,11 @@ bash scripts/link-agents.sh
 
 ## 技能
 
-| 用途 | 技能 |
-| --- | --- |
-| 提交、写作与需求 | `commit`、`shuorenhua`、`refine-requirements` |
-| SylixOS 生态查询、移植、板卡操作、调试与制品管理 | `sylixos` |
-| ECS QEMU 虚拟机管理 | `qemu-sylixos-ecs-usage` |
+| 安装方式 | 用途 | 技能 |
+| --- | --- | --- |
+| 默认 | 提交、写作与需求 | `commit`、`shuorenhua`、`refine-requirements` |
+| 可选 | SylixOS 生态查询、移植、板卡操作、调试与制品管理 | `sylixos` |
+| 可选 | ECS QEMU 虚拟机管理 | `qemu-sylixos-ecs-usage` |
 
 `sylixos` 按任务读取专项参考，文档查询优先使用可用的 AcoHub MCP；本地资料用于离线、在线未覆盖或指定历史版本。在线片段不保证最新，需核对来源和版本。查询不触发部署或发布。旧的九个 SylixOS 相关入口已合并；旧安装的移除与新入口安装分开处理，不能假定 `npx skills update` 会删除旧名称。本机已完成迁移。
 
