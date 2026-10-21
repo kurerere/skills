@@ -4,6 +4,7 @@ import importlib.util
 import io
 from pathlib import Path
 import tempfile
+import socket
 import unittest
 from unittest.mock import Mock, patch
 
@@ -89,7 +90,112 @@ class FtpClientTests(unittest.TestCase):
                 self.assertEqual(ftp_client.run_ftp(args), 1)
         self.assertNotIn("Successfully uploaded", output.getvalue())
         self.assertIn("Cannot read", output.getvalue())
-        self.assertEqual(ftp.storbinary.call_count, 3)
+        self.assertEqual(ftp.storbinary.call_count, 1)
+
+    def test_permanent_errors_do_not_retry(self):
+        for error in (ftplib.error_perm("530 Login incorrect"), ftplib.error_perm("550 Permission denied"),
+                      FileNotFoundError("missing local file"), PermissionError("local permission"),
+                      RuntimeError("verification failed")):
+            with self.subTest(error=error):
+                ftp = Mock()
+                ftp.login.side_effect = error
+                with patch.object(ftp_client.ftplib, "FTP", return_value=ftp), \
+                        patch.object(ftp_client.time, "sleep") as sleep, \
+                        contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(ftp_client.run_ftp(self.parse("list", "/apps")), 1)
+                ftp.connect.assert_called_once()
+                sleep.assert_not_called()
+
+    def test_transient_error_retries_with_new_connection(self):
+        for error in (socket.timeout("timeout"), ConnectionResetError("reset"), EOFError(), ftplib.error_temp("421 Busy")):
+            with self.subTest(error=error):
+                first, second = Mock(), Mock()
+                first.connect.side_effect = error
+                second.sendcmd.return_value = "250 OK"
+                second.nlst.return_value = []
+                with patch.object(ftp_client.ftplib, "FTP", side_effect=[first, second]), \
+                        patch.object(ftp_client.time, "sleep") as sleep, \
+                        contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(ftp_client.run_ftp(self.parse("list", "/apps")), 0)
+                sleep.assert_called_once()
+                first.close.assert_called_once()
+
+    def test_delete_does_not_retry_transient_failure(self):
+        ftp = Mock()
+        ftp.connect.side_effect = socket.timeout("timeout")
+        with patch.object(ftp_client.ftplib, "FTP", return_value=ftp), \
+                patch.object(ftp_client.time, "sleep") as sleep, \
+                contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(ftp_client.run_ftp(self.parse("delete", "/apps/file")), 1)
+        ftp.connect.assert_called_once()
+        sleep.assert_not_called()
+
+    def test_progress_is_throttled_and_reports_total_bytes(self):
+        error = io.StringIO()
+        with patch.object(ftp_client.time, "monotonic", return_value=1.0), contextlib.redirect_stderr(error):
+            progress = ftp_client.TransferProgress("upload", 1000)
+            for _ in range(1000):
+                progress.update(b"x")
+            progress.finish()
+        self.assertLessEqual(len(error.getvalue().splitlines()), 2)
+        self.assertIn("1000/1000 bytes", error.getvalue())
+
+    def test_progress_upload_preserves_verify_and_keeps_stdout_clean(self):
+        ftp = Mock()
+        ftp.storbinary.side_effect = lambda command, source, blocksize, callback: callback(source.read())
+        ftp.retrbinary.side_effect = lambda command, callback, blocksize: callback(b"data")
+        with tempfile.TemporaryDirectory() as directory:
+            local = Path(directory) / "payload"
+            local.write_bytes(b"data")
+            args = self.parse("upload", str(local), "/apps/file", "--verify", "--progress")
+            output, error = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error):
+                ftp_client.dispatch(ftp, args, [])
+        self.assertIn("Verified SHA-256", output.getvalue())
+        self.assertIn("upload: 4/4 bytes", error.getvalue())
+        self.assertIn("verify: 4/4 bytes", error.getvalue())
+
+    def test_download_progress_and_content(self):
+        ftp = Mock()
+        ftp.sendcmd.side_effect = ["200 Binary", "213 4"]
+        ftp.retrbinary.side_effect = lambda command, callback, blocksize: callback(b"data")
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "download"
+            args = self.parse("download", str(target), "/apps/file", "--progress")
+            output, error = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error):
+                ftp_client.dispatch(ftp, args, [])
+            self.assertEqual(target.read_bytes(), b"data")
+            self.assertEqual(list(target.parent.iterdir()), [target])
+        self.assertIn("download: 4/4 bytes", error.getvalue())
+
+    def test_download_failure_removes_partial_and_preserves_existing_destination(self):
+        ftp = Mock()
+        def receive(command, callback, blocksize):
+            callback(b"partial")
+            raise ftplib.error_perm("550 Read failed")
+        ftp.retrbinary.side_effect = receive
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "download"
+            target.write_bytes(b"original")
+            args = self.parse("download", str(target), "/apps/file")
+            with patch.object(ftp_client.ftplib, "FTP", return_value=ftp), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(ftp_client.run_ftp(args), 1)
+            self.assertEqual(target.read_bytes(), b"original")
+            self.assertEqual(list(target.parent.iterdir()), [target])
+
+    def test_download_progress_reports_local_replace_failure(self):
+        ftp = Mock()
+        ftp.sendcmd.side_effect = ["200 Binary", "213 4"]
+        ftp.retrbinary.side_effect = lambda command, callback, blocksize: callback(b"data")
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "download"
+            error = io.StringIO()
+            with patch.object(ftp_client.os, "replace", side_effect=PermissionError("cannot replace")), \
+                    contextlib.redirect_stderr(error):
+                with self.assertRaises(PermissionError):
+                    ftp_client.download(ftp, "/apps/file", str(target), [], progress=True)
+        self.assertIn("failed", error.getvalue())
 
     def test_dry_run_listing_failure_returns_nonzero_without_retry(self):
         ftp = Mock()
@@ -112,7 +218,7 @@ class FtpClientTests(unittest.TestCase):
                 if callback:
                     callback(chunk)
         ftp.storbinary.side_effect = store
-        ftp.retrbinary.side_effect = lambda command, callback: callback(remote_data)
+        ftp.retrbinary.side_effect = lambda command, callback, blocksize=8192: callback(remote_data)
         with tempfile.TemporaryDirectory() as directory:
             local = Path(directory) / "payload"
             local.write_bytes(local_data)

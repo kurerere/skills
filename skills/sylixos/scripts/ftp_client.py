@@ -1,15 +1,19 @@
 import argparse
+import errno
 import ftplib
 import hashlib
+import math
 import os
 from pathlib import Path
 import posixpath
+import socket
 import sys
 import time
 
 
 DEFAULT_TIMEOUT = 10.0
 RETRYING_MODES = {"upload", "download", "list", "size", "mkdir"}
+TRANSFER_BLOCK_SIZE = 65536
 
 
 def positive_timeout(value):
@@ -17,8 +21,8 @@ def positive_timeout(value):
         timeout = float(value)
     except ValueError as error:
         raise argparse.ArgumentTypeError(f"invalid timeout: {value}") from error
-    if timeout <= 0:
-        raise argparse.ArgumentTypeError("timeout must be greater than zero")
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise argparse.ArgumentTypeError("timeout must be finite and greater than zero")
     return timeout
 
 
@@ -87,28 +91,100 @@ def entries(ftp, path):
     return sorted(set(result))
 
 
-def upload(ftp, local_path, remote_path, verify=False):
+class TransferProgress:
+    def __init__(self, operation, total=None):
+        self.operation = operation
+        self.total = total
+        self.transferred = 0
+        self.started = time.monotonic()
+        self.last_report = self.started
+
+    def update(self, block):
+        self.transferred += len(block)
+        now = time.monotonic()
+        if now - self.last_report >= .5:
+            self.report(now)
+
+    def report(self, now, status=""):
+        elapsed = max(0.0, now - self.started)
+        rate = self.transferred / elapsed / (1024 * 1024) if elapsed else 0.0
+        count = str(self.transferred) if self.total is None else f"{self.transferred}/{self.total}"
+        percent = f" ({100 * self.transferred / self.total:.1f}%)" if self.total else ""
+        print(f"{self.operation}: {count} bytes{percent}, {elapsed:.2f}s, {rate:.2f} MiB/s{status}", file=sys.stderr, flush=True)
+        self.last_report = now
+
+    def finish(self, success=True):
+        self.report(time.monotonic(), " done" if success else " failed")
+
+
+def upload(ftp, local_path, remote_path, verify=False, progress=False):
     if not os.path.isfile(local_path):
         raise FileNotFoundError(f"local file does not exist: {local_path}")
     local_hash = hashlib.sha256() if verify else None
     with open(local_path, "rb") as source:
-        ftp.storbinary(f"STOR {remote_path}", source, callback=local_hash.update if verify else None)
+        total = os.fstat(source.fileno()).st_size
+        meter = TransferProgress("upload", total) if progress else None
+        def uploaded(block):
+            if local_hash is not None:
+                local_hash.update(block)
+            if meter is not None:
+                meter.update(block)
+        try:
+            ftp.storbinary(f"STOR {remote_path}", source, blocksize=TRANSFER_BLOCK_SIZE,
+                           callback=uploaded if verify or progress else None)
+        except Exception:
+            if meter is not None:
+                meter.finish(success=False)
+            raise
+        if meter is not None:
+            meter.finish()
     if verify:
         remote_hash = hashlib.sha256()
-        ftp.retrbinary(f"RETR {remote_path}", remote_hash.update)
-        if local_hash.digest() != remote_hash.digest():
-            raise RuntimeError(f"upload verification failed for {remote_path}: SHA-256 mismatch")
+        meter = TransferProgress("verify", total) if progress else None
+        def verified(block):
+            remote_hash.update(block)
+            if meter is not None:
+                meter.update(block)
+        try:
+            ftp.retrbinary(f"RETR {remote_path}", verified, blocksize=TRANSFER_BLOCK_SIZE)
+            if local_hash.digest() != remote_hash.digest():
+                raise RuntimeError(f"upload verification failed for {remote_path}: SHA-256 mismatch")
+        except Exception:
+            if meter is not None:
+                meter.finish(success=False)
+            raise
+        if meter is not None:
+            meter.finish()
         print(f"Verified SHA-256: {remote_hash.hexdigest()}")
     print(f"Successfully uploaded {local_path} to {remote_path}")
 
 
-def download(ftp, remote_path, local_path, partials):
+def download(ftp, remote_path, local_path, partials, progress=False):
     destination = Path(local_path)
     partial_path = destination.with_name(f".{destination.name}.part-{os.getpid()}")
     partials.append(partial_path)
-    with open(partial_path, "wb") as target:
-        ftp.retrbinary(f"RETR {remote_path}", target.write)
-    os.replace(partial_path, destination)
+    total = None
+    if progress:
+        try:
+            command(ftp, "TYPE I")
+            total = int(command(ftp, f"SIZE {remote_path}").split()[1])
+        except ftplib.error_perm:
+            pass
+    meter = TransferProgress("download", total) if progress else None
+    try:
+        with open(partial_path, "wb") as target:
+            def received(block):
+                target.write(block)
+                meter.update(block)
+            ftp.retrbinary(f"RETR {remote_path}", received if progress else target.write,
+                           blocksize=TRANSFER_BLOCK_SIZE)
+        os.replace(partial_path, destination)
+    except Exception:
+        if meter is not None:
+            meter.finish(success=False)
+        raise
+    if meter is not None:
+        meter.finish()
     print(f"Successfully downloaded {remote_path} to {local_path}")
 
 
@@ -176,9 +252,9 @@ def rmtree(ftp, remote_path, contents_only, dry_run=False):
 
 def dispatch(ftp, args, partials):
     if args.mode == "upload":
-        upload(ftp, args.local_path, args.remote_path, verify=args.verify)
+        upload(ftp, args.local_path, args.remote_path, verify=args.verify, progress=args.progress)
     elif args.mode == "download":
-        download(ftp, args.remote_path, args.local_path, partials)
+        download(ftp, args.remote_path, args.local_path, partials, progress=args.progress)
     elif args.mode == "list":
         list_dir(ftp, args.remote_path)
     elif args.mode == "size":
@@ -191,6 +267,17 @@ def dispatch(ftp, args, partials):
         rmdir(ftp, args.remote_path)
     else:
         rmtree(ftp, args.remote_path, args.contents_only, dry_run=args.dry_run)
+
+
+def retryable(error):
+    if isinstance(error, (ftplib.error_temp, TimeoutError, ConnectionError, EOFError)):
+        return True
+    if isinstance(error, socket.gaierror):
+        return error.errno == socket.EAI_AGAIN
+    return isinstance(error, OSError) and error.errno in {
+        errno.ENETDOWN, errno.ENETUNREACH, errno.EHOSTUNREACH,
+        errno.ECONNABORTED, errno.ECONNRESET, errno.ECONNREFUSED, errno.ETIMEDOUT, errno.EPIPE,
+    }
 
 
 def run_ftp(args):
@@ -211,13 +298,15 @@ def run_ftp(args):
                     os.remove(partial_path)
                 except OSError:
                     pass
-            if attempt + 1 < attempts:
-                time.sleep(1)
         finally:
             try:
                 ftp.close()
             except OSError:
                 pass
+        if not retryable(last_error) or attempt + 1 >= attempts:
+            break
+        print(f"FTP retry {attempt + 2}/{attempts}: {last_error}", file=sys.stderr)
+        time.sleep(1)
     print(f"FTP Error: {last_error}", file=sys.stderr)
     return 1
 
@@ -245,6 +334,7 @@ def build_parser():
         sub = modes.add_parser(name, help=help_text)
         sub.add_argument("local_path")
         sub.add_argument("remote_path", type=non_root_remote)
+        sub.add_argument("--progress", action="store_true", help="report transfer bytes, elapsed time and speed on stderr")
         if name == "upload":
             sub.add_argument("--verify", action="store_true", help="read back the uploaded file and compare SHA-256")
 
