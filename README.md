@@ -4,32 +4,31 @@
 
 ## 安装与更新
 
-需要能访问这台 Git 服务器的网络。默认安装 `commit`、`shuorenhua`、`refine-requirements`，全局放在 `~/.agents/skills`，供 Claude Code、Codex 和 Zcode 使用：
+需要能访问这台 Git 服务器的网络。安装器会显示 `Develop` 和 `Sylixos` 两组，可按组或单项勾选。全局安装放在 `~/.agents/skills`，供 Claude Code、Codex 和 Zcode 使用：
 
 ```bash
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -y
+npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode
 ```
 
-SylixOS 和 QEMU 技能按需安装，可分别执行：
+跳过交互、安装 `develop` 组的三项技能：
 
 ```bash
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s sylixos -y
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s qemu-sylixos-ecs-usage -y
+npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s commit refine-requirements shuorenhua -y
 ```
 
-查看默认技能：
+跳过交互、安装 `sylixos` 组的两项技能：
+
+```bash
+npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s sylixos qemu-sylixos-ecs-usage -y
+```
+
+只查看分组和全部五项技能：
 
 ```bash
 npx skills add http://100.77.36.66:3000/wangjijie/skills.git --list
 ```
 
-查看全部五项，包括可选技能：
-
-```bash
-INSTALL_INTERNAL_SKILLS=1 npx skills add http://100.77.36.66:3000/wangjijie/skills.git --list
-```
-
-可选项使用 skills CLI 的 `metadata.internal` 排除默认发现；CLI 1.7.1 支持通过 `-s <名称>` 显式安装。若要一次安装五项，设置 `INSTALL_INTERNAL_SKILLS=1` 后执行默认安装命令。已有安装保留，修改默认名单不会卸载可选技能，也不改变它们安装后的调用方式。
+分组由 [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) 声明，使用 skills CLI 1.7.1 的原生分组选择，无需环境变量。`-s` 接收技能名称，不接收组名；`-s sylixos` 只安装同名技能。使用 `-y` 而不指定 `-s` 会安装全部五项。已有安装保留，分组不改变技能名称、目录或安装后的调用方式。
 
 更新已安装的全局技能：
 
@@ -49,17 +48,16 @@ bash scripts/link-agents.sh
 
 ## 技能
 
-| 安装方式 | 用途 | 技能 |
+| 分组 | 用途 | 技能 |
 | --- | --- | --- |
-| 默认 | 提交、写作与需求 | `commit`、`shuorenhua`、`refine-requirements` |
-| 可选 | SylixOS 生态查询、移植、板卡操作、调试与制品管理 | `sylixos` |
-| 可选 | ECS QEMU 虚拟机管理 | `qemu-sylixos-ecs-usage` |
+| `develop` | 提交、写作与需求 | `commit`、`refine-requirements`、`shuorenhua` |
+| `sylixos` | SylixOS 开发与 ECS QEMU 虚拟机管理 | `sylixos`、`qemu-sylixos-ecs-usage` |
 
 `sylixos` 按任务读取专项参考，文档查询优先使用可用的 AcoHub MCP；本地资料用于离线、在线未覆盖或指定历史版本。在线片段不保证最新，需核对来源和版本。查询不触发部署或发布。旧的九个 SylixOS 相关入口已合并；旧安装的移除与新入口安装分开处理，不能假定 `npx skills update` 会删除旧名称。本机已完成迁移。
 
 ## 维护
 
-每项技能放在 `skills/<name>/`，入口为 `SKILL.md`，随技能安装的脚本和参考资料使用相对路径。`<SKILL_DIR>` 指当前安装的 `SKILL.md` 所在目录。
+每项技能放在 `skills/<name>/`，入口为 `SKILL.md`，随技能安装的脚本和参考资料使用相对路径。`<SKILL_DIR>` 指当前安装的 `SKILL.md` 所在目录。新增技能时，在 marketplace 清单中分配到一个组；每项技能恰好归属一组，并保持默认可发现。
 
 `sylixos` 的手册索引映射见 [手册检索](skills/sylixos/references/docs.md)。已有资料继续放在原来的 `~/.agents/skill-data` 子目录，或由 `AGENTS_SKILL_DATA_DIR` 指定资料根目录，合并技能不重命名资料目录。RealEvo 原适配器仍位于 `<DATA_ROOT>/realevo-stream/scripts`。技能安装不会安装 IDE、MCP、SDK、调试器、手册或虚拟机。
 
@@ -67,8 +65,9 @@ bash scripts/link-agents.sh
 
 仓库不包含底层产品手册。个人检索流程和自写脚本在这里维护，第三方资料留在本地；原有素材保留各自许可。本仓库的来源记录见 [SOURCES.md](SOURCES.md)。
 
-在装有 PyYAML 的 Python 环境中检查技能入口、名称和索引引用：
+在装有 PyYAML 的 Python 环境中检查技能入口、名称、索引引用和分组完整性：
 
 ```bash
 python3 scripts/validate.py
+python3 -m unittest discover -s scripts/tests
 ```

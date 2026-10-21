@@ -1,0 +1,29 @@
+{
+  "name": "wangjijie-skills",
+  "owner": {
+    "name": "wangjijie"
+  },
+  "plugins": [
+    {
+      "name": "develop",
+      "description": "提交、需求完善与写作",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/commit",
+        "./skills/refine-requirements",
+        "./skills/shuorenhua"
+      ]
+    },
+    {
+      "name": "sylixos",
+      "description": "SylixOS 开发、板卡操作与 ECS QEMU 虚拟机管理",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/sylixos",
+        "./skills/qemu-sylixos-ecs-usage"
+      ]
+    }
+  ]
+}

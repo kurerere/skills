@@ -1,8 +1,6 @@
 ---
 name: qemu-sylixos-ecs-usage
 description: Operate and troubleshoot the SylixOS ECS QEMU virtual machine (Zynq UltraScale+ ZCU102 Cortex-A53). Use when managing VM lifecycle (start/stop/status), connecting via serial/telnet/FTP, switching network modes (host-only/loopback), or inspecting ECS container runtime.
-metadata:
-  internal: true
 ---
 
 # SylixOS ECS QEMU 虚拟机使用指南

@@ -1,8 +1,6 @@
 ---
 name: sylixos
 description: SylixOS 及 ECS、JSRE、VSOA、RealEvo-Stream、Armory 相关任务：查询手册、移植程序、操作板卡、远程调试、工程构建与制品管理；按任务加载对应参考。
-metadata:
-  internal: true
 ---
 
 # SylixOS
