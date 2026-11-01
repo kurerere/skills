@@ -8,7 +8,7 @@ import yaml
 def inspect_groups(root, skills):
     path = root / '.claude-plugin/marketplace.json'
     try:
-        manifest = json.loads(path.read_text())
+        manifest = json.loads(path.read_text(encoding='utf-8'))
     except (OSError, ValueError) as error:
         return [f'{path}: {error}']
     if not isinstance(manifest, dict) or not isinstance(manifest.get('plugins'), list):
@@ -70,7 +70,7 @@ def inspect(root):
     allowed = {'name', 'description', 'metadata', 'license', 'allowed-tools',
                'disable-model-invocation', 'argument-hint', 'user-invocable'}
     for entry in skills:
-        text = entry.read_text()
+        text = entry.read_text(encoding='utf-8')
         match = re.match(r'^---\n(.*?)\n---(?:\n|$)', text, re.S)
         if not match:
             errors.append(f'{entry}: missing frontmatter')
@@ -96,7 +96,7 @@ def inspect(root):
             errors.append(f'{entry}: grouped skills must be visible to the installer')
         # Index destinations are on a single line; <> allows filename parentheses.
         for file in entry.parent.rglob('*.md'):
-            for line in file.read_text().splitlines():
+            for line in file.read_text(encoding='utf-8').splitlines():
                 for m in re.finditer(r'\[[^\]\n]+\]\((<[^>]+>|[^)]+)\)', line):
                     dest = m[1].strip('<>')
                     if ':' in dest or dest.startswith(('#', '/', '~', '<')):
