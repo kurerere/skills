@@ -50,10 +50,10 @@ class SkillGroupTests(unittest.TestCase):
         self.manifest["plugins"][0]["source"] = "./../outside"
         self.assertTrue(self.inspect())
 
-    def test_internal_skill_cannot_silently_disappear(self):
+    def test_internal_skill_is_allowed(self):
         path = self.root / "skills/sylixos/SKILL.md"
         path.write_text(path.read_text().replace("description: Test skill", "description: Test skill\nmetadata:\n  internal: true"))
-        self.assertTrue(self.inspect())
+        self.assertEqual(self.inspect(), [])
 
 
 if __name__ == "__main__":

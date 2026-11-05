@@ -16,19 +16,19 @@ npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code c
 npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s commit evidence-first-docs refine-requirements slim writing -y
 ```
 
-跳过交互、安装 `sylixos` 组的两项技能：
+跳过交互、安装 `sylixos` 本体和扩展项（扩展项必须显式点名才装得上）：
 
 ```bash
 npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s sylixos qemu-sylixos-ecs-usage -y
 ```
 
-只查看分组和全部七项技能：
+只查看分组和各组技能（扩展项 `qemu-sylixos-ecs-usage` 不出现在列表中）：
 
 ```bash
 npx skills add http://100.77.36.66:3000/wangjijie/skills.git --list
 ```
 
-分组由 [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) 声明，使用 skills CLI 1.7.1 的原生分组选择，无需环境变量。`-s` 接收技能名称，不接收组名；`-s sylixos` 只安装同名技能。使用 `-y` 而不指定 `-s` 会安装全部七项。已有安装保留，分组不改变技能名称、目录或安装后的调用方式。
+分组由 [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) 声明，使用 skills CLI 的原生分组选择。`-s` 接收技能名称，不接收组名；`-s sylixos` 只安装同名技能。使用 `-y` 而不指定 `-s` 安装其余六项；`-s '*'` 同样跳过扩展项。`qemu-sylixos-ecs-usage` 标记为 `metadata.internal`，不参与默认安装和全量安装，只能 `-s qemu-sylixos-ecs-usage` 显式点名；`INSTALL_INTERNAL_SKILLS=1` 可以让它出现在交互列表中。已有安装保留，分组不改变技能名称、目录或安装后的调用方式。
 
 更新已安装的全局技能：
 
@@ -36,7 +36,7 @@ npx skills add http://100.77.36.66:3000/wangjijie/skills.git --list
 npx skills update -g -y
 ```
 
-这会同时检查其他来源的全局技能。只更新本仓库的一项可用 `npx skills update commit -g -y`；重新执行对应安装命令也可以同步选中的技能。以上命令按 skills CLI 1.7.1 验证，自建 Git URL 的来源和路径会记录在全局安装锁文件中。
+这会同时检查其他来源的全局技能。只更新本仓库的一项可用 `npx skills update commit -g -y`；扩展项 `qemu-sylixos-ecs-usage` 同理需要点名更新，全量更新会跳过它。重新执行对应安装命令也可以同步选中的技能。以上命令按 skills CLI 1.7.1 验证，自建 Git URL 的来源和路径会记录在全局安装锁文件中。
 
 skills CLI 已支持 Zcode。三个 Agent 共用同一份技能；如需补齐 Codex 的旧目录入口，可在仓库检出目录运行：
 
@@ -51,7 +51,7 @@ bash scripts/link-agents.sh
 | 分组 | 用途 | 技能 |
 | --- | --- | --- |
 | `develop` | 提交、写作、需求与文档纪律 | `commit`、`evidence-first-docs`、`writing`、`refine-requirements`、`slim` |
-| `sylixos` | SylixOS 开发与 ECS QEMU 虚拟机管理 | `sylixos`、`qemu-sylixos-ecs-usage` |
+| `sylixos` | SylixOS 开发与 ECS QEMU 虚拟机管理 | `sylixos`、`qemu-sylixos-ecs-usage`（扩展项，需显式点名安装） |
 
 `sylixos` 按任务读取专项参考，文档查询优先使用可用的 AcoHub MCP；本地资料用于离线、在线未覆盖或指定历史版本。在线片段不保证最新，需核对来源和版本。查询不触发部署或发布。旧的九个 SylixOS 相关入口已合并；旧安装的移除与新入口安装分开处理，不能假定 `npx skills update` 会删除旧名称。本机已完成迁移。
 

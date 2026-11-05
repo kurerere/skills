@@ -91,9 +91,6 @@ def inspect(root):
             errors.append(f'{entry}: invalid description')
         if set(front) - allowed:
             errors.append(f'{entry}: unsupported fields {set(front)-allowed}')
-        metadata = front.get('metadata')
-        if isinstance(metadata, dict) and metadata.get('internal') is True:
-            errors.append(f'{entry}: grouped skills must be visible to the installer')
         # Index destinations are on a single line; <> allows filename parentheses.
         for file in entry.parent.rglob('*.md'):
             for line in file.read_text(encoding='utf-8').splitlines():
