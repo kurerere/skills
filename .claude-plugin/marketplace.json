@@ -13,6 +13,7 @@
         "./skills/commit",
         "./skills/evidence-first-docs",
         "./skills/refine-requirements",
+        "./skills/slim",
         "./skills/writing"
       ]
     },
