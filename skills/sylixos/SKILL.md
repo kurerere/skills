@@ -16,6 +16,7 @@ description: SylixOS 及 ECS、JSRE、VSOA、RealEvo-Stream、Armory 相关任�
 | 发送目标命令、传输文件、部署或运行程序 | [板卡操作](references/board-operations.md) |
 | 编写目标命令、startup.sh、shfile 或 system/popen 命令字符串 | [目标 Shell](references/shell.md)，操作板卡时也必须读取 |
 | 远程 GDB、符号匹配、线程与崩溃诊断 | [调试](references/gdb.md)，目标侧命令另读板卡与 Shell 参考 |
+| 板子启动失败、SD 启动盘与启动分区文件系统排查修复 | [启动介质](references/boot-media.md) |
 | RealEvo-Stream 工作空间、工程、设备、构建与部署 | [RealEvo-Stream](references/realevo-stream.md) |
 | Armory 制品打包、安装验证或发布 | [Armory](references/armory.md) |
 
