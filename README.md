@@ -13,7 +13,7 @@ npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code c
 跳过交互、安装 `develop` 组的五项技能：
 
 ```bash
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s commit evidence-first-docs refine-requirements slim writing -y
+npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s commit tech-docs refine-requirements slim writing -y
 ```
 
 跳过交互、安装 `sylixos` 本体和扩展项（扩展项必须显式点名才装得上）：
@@ -50,7 +50,7 @@ bash scripts/link-agents.sh
 
 | 分组 | 用途 | 技能 |
 | --- | --- | --- |
-| `develop` | 提交、写作、需求与文档纪律 | `commit`、`evidence-first-docs`、`writing`、`refine-requirements`、`slim` |
+| `develop` | 提交、写作、需求与文档纪律 | `commit`、`tech-docs`、`writing`、`refine-requirements`、`slim` |
 | `sylixos` | SylixOS 开发与 ECS QEMU 虚拟机管理 | `sylixos`、`qemu-sylixos-ecs-usage`（扩展项，需显式点名安装） |
 
 `sylixos` 按任务读取专项参考，文档查询优先使用可用的 AcoHub MCP；本地资料用于离线、在线未覆盖或指定历史版本。在线片段不保证最新，需核对来源和版本。查询不触发部署或发布。旧的九个 SylixOS 相关入口已合并；旧安装的移除与新入口安装分开处理，不能假定 `npx skills update` 会删除旧名称。本机已完成迁移。

@@ -11,7 +11,7 @@
       "strict": false,
       "skills": [
         "./skills/commit",
-        "./skills/evidence-first-docs",
+        "./skills/tech-docs",
         "./skills/refine-requirements",
         "./skills/slim",
         "./skills/writing"
