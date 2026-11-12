@@ -269,6 +269,9 @@ def dispatch(ftp, args, partials):
         rmtree(ftp, args.remote_path, args.contents_only, dry_run=args.dry_run)
 
 
+PASSWORD_ENV = "SYLIXOS_PASSWORD"
+
+
 def retryable(error):
     if isinstance(error, (ftplib.error_temp, TimeoutError, ConnectionError, EOFError)):
         return True
@@ -288,7 +291,7 @@ def run_ftp(args):
         ftp = ftplib.FTP()
         try:
             ftp.connect(args.ip, args.port, timeout=args.timeout)
-            ftp.login("root", "root")
+            ftp.login(getattr(args, "user", "root"), os.environ.get(PASSWORD_ENV, "root"))
             dispatch(ftp, args, partials)
             return 0
         except Exception as error:
@@ -326,6 +329,12 @@ def build_parser():
         type=positive_timeout,
         default=DEFAULT_TIMEOUT,
         help=f"FTP connection and transfer timeout in seconds (default: {DEFAULT_TIMEOUT:g})",
+    )
+    parser.add_argument(
+        "-u",
+        "--user",
+        default=os.environ.get("SYLIXOS_USER", "root"),
+        help="login user (default: $SYLIXOS_USER or root); password comes from $SYLIXOS_PASSWORD, default root",
     )
     parser.add_argument("ip", help="SylixOS board IPv4 address")
     modes = parser.add_subparsers(dest="mode", required=True)

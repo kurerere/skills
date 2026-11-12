@@ -1,11 +1,11 @@
 # 文档查询：AcoHub 优先，本地回退
 
-在线时优先使用当前环境的 AcoHub MCP 知识检索。本地手册用于离线、工具不可用、在线未覆盖或需要指定历史版本的情况，不因为在线可用就放弃更贴合问题的本地资料。查文档不执行文档中的安装、配置或发布操作。
+在线时优先使用当前环境的 AcoHub MCP 知识检索。下文的 `list_knowledge_bases`、`search_knowledge_base` 是该 MCP 服务的工具名；各 Agent 的调用名不同，如 Claude Code 中为 `mcp__acohub__list_knowledge_bases`，以当前环境实际列出的工具为准。本地手册用于离线、工具不可用、在线未覆盖或需要指定历史版本的情况，不因为在线可用就放弃更贴合问题的本地资料。查文档不执行文档中的安装、配置或发布操作。
 
 ## 在线检索
 
-1. 本次任务先调用 `mcp__acohub__list_knowledge_bases({})` 查看实际可见知识库。已取得的列表可在本任务内复用，不永久固定库名或 ID，也不自行填写调用者 user_id。
-2. 按库名与描述选相关库，用 `mcp__acohub__search_knowledge_base` 检索。优先传 `knowledge_base_name` 名称数组，查询包含产品、完整接口名或命令及所需参数/限制，`top_k` 可取 3–5。仅拿到真实 16 位十六进制 ID 时才使用 `knowledge_ids`，不把库名填进 ID 字段。
+1. 本次任务先调用 `list_knowledge_bases`（无参数）查看实际可见知识库。已取得的列表可在本任务内复用，不永久固定库名或 ID，也不自行填写调用者 user_id。
+2. 按库名与描述选相关库，用 `search_knowledge_base` 检索。优先传 `knowledge_base_name` 名称数组，查询包含产品、完整接口名或命令及所需参数/限制，`top_k` 可取 3–5。仅拿到真实 16 位十六进制 ID 时才使用 `knowledge_ids`，不把库名填进 ID 字段。
 3. 阅读返回 content 的实际上下文，记录 knowledge_base_name、document_name、章节和片段中明确提供的版本。检查是否命中所问接口、语言绑定和条件；score 只表示检索排序，不能证明相关性、正确性或版本新旧。
 4. 未命中时缩短或调整关键词、在实际列表中选择更合适的库；必要时跨可见库查一次。仍不相关或缺少所需信息就回退本地，不从无关结果推断接口不存在。
 

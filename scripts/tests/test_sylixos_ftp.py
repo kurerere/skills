@@ -92,6 +92,16 @@ class FtpClientTests(unittest.TestCase):
         self.assertIn("Cannot read", output.getvalue())
         self.assertEqual(ftp.storbinary.call_count, 1)
 
+    def test_login_uses_user_option_and_password_env(self):
+        ftp = Mock()
+        ftp.sendcmd.return_value = "250 OK"
+        ftp.nlst.return_value = []
+        with patch.dict(ftp_client.os.environ, {"SYLIXOS_PASSWORD": "s3cret"}), \
+                patch.object(ftp_client.ftplib, "FTP", return_value=ftp), \
+                contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            ftp_client.run_ftp(self.parse("--user", "admin", "list", "/apps"))
+        ftp.login.assert_called_once_with("admin", "s3cret")
+
     def test_permanent_errors_do_not_retry(self):
         for error in (ftplib.error_perm("530 Login incorrect"), ftplib.error_perm("550 Permission denied"),
                       FileNotFoundError("missing local file"), PermissionError("local permission"),

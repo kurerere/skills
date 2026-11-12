@@ -1,12 +1,12 @@
 # 套接字错误与非阻塞连接
 
-当连接失败显示 `Event full`、`Invalid event` 等内核错误，或 `connect`、就绪通知与 `SO_ERROR` 结果不一致时读取。这里的内核路径来自历史 sbase/cmd_relic 移植记录，须在当前 SDK 和目标上重新确认。
+当连接失败显示 `Event full`、`Invalid event` 等内核错误，或 `connect`、就绪通知与 `SO_ERROR` 结果不一致时读取。这里的内核路径来自 sbase/cmd_relic 移植记录。
 
 ## 先区分错误来源
 
 记录每次 `connect`、`poll`/`ppoll`、`getsockopt(SO_ERROR)` 的返回值、失败时立即保存的 errno、SO_ERROR 值及就绪事件。成功调用后的 errno 可能是旧值，不能作为本次失败依据。
 
-历史记录中，poll/ppoll 经 pselect 唤醒套接字时，信号量释放路径可能写入线程 errno；连接失败路径又可能把该值保存到套接字错误状态。检查当前实现是否存在相同调用链，再判断是否发生错误污染，不能仅凭日志字符串确定根因。
+历史记录中，poll/ppoll 经 pselect 唤醒套接字时，信号量释放路径可能写入线程 errno；连接失败路径又可能把该值保存到套接字错误状态。检查当前实现是否存在相同调用链，不能仅凭日志字符串确定根因。
 
 非阻塞连接进入 EINPROGRESS 后，应按当前实现处理就绪事件并读取 SO_ERROR，分别处理成功、真实连接错误、等待超时和等待调用失败。libuv 中 SO_ERROR 暂留 EINPROGRESS 的专项处理见 [libuv-network.md](libuv-network.md)，不把它扩展到其他错误值。
 
@@ -18,7 +18,7 @@
 | ERROR_THREAD_WAIT_TIMEOUT | 506 |
 | ERROR_EVENT_NULL | 1502 |
 
-这些是待核对的历史线索，不是通用映射表。历史命名将 1503 归为事件状态，具体含义仍须核对当前 SDK，不能证明连接拒绝；其余数值也须核对当前 SDK 定义和失败路径。使用符号化 POSIX 常量，不硬编码其数值。
+数值以当前 SDK 定义为准；1503 在历史命名中属于事件状态，不能证明连接被拒绝。代码里使用符号化 POSIX 常量，不硬编码数值。
 
 只有复现和目标证据能区分真实网络失败与内核错误污染时，才在该套接字路径采用最小兼容处理。保留原始错误用于诊断，不修改通用 strerror、warn、err 或全局 errno 转换，否则文件、线程和其他事件错误也会被误报。
 

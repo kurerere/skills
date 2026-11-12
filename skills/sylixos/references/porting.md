@@ -23,7 +23,7 @@
 - libuv 非阻塞状态与连接完成：[libuv-network.md](porting/libuv-network.md)。
 - Node/库的初始化、线程退出与 ABI 符号：[runtime-lifecycle.md](porting/runtime-lifecycle.md)。
 
-只读取相关分支。参考中的 Node、GYP、V8、libuv、sbase/cmd_relic 经验是历史调查线索；本技能未附可复核的源码版本、原始日志和完整测试记录，不能据此宣称已验证或直接实施旧补丁。
+只读取相关分支。参考中的 Node、GYP、V8、libuv、sbase/cmd_relic 经验是历史调查线索；本技能未附可复核的源码版本、原始日志和完整测试记录，不能据此宣称已验证或直接实施旧补丁。这一条对下列所有专项参考都成立，各参考不再逐处重复。
 
 准备 Armory 移植交付时，读取 [Armory](armory.md)，参考其中仅面向移植软件的版本命名建议。
 

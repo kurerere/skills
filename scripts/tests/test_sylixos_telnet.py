@@ -33,6 +33,18 @@ class TelnetTests(unittest.TestCase):
             result = telnet.run_telnet("127.0.0.1", ["help"], dict(TIMEOUTS, command=1), **options)
         return result, stdout.getvalue(), stderr.getvalue(), sock
 
+    def test_default_login_is_root(self):
+        with patch.dict(telnet.os.environ, {}, clear=True):
+            _, _, _, sock = self.run_command([b"help\r\n" + PROMPT.encode()])
+        sent = [call.args[0] for call in sock.sendall.call_args_list]
+        self.assertEqual(sent[:2], [b"root\n", b"root\n"])
+
+    def test_login_uses_given_user_and_password_env(self):
+        with patch.dict(telnet.os.environ, {"SYLIXOS_PASSWORD": "s3cret"}):
+            _, _, _, sock = self.run_command([b"help\r\n" + PROMPT.encode()], user="admin")
+        sent = [call.args[0] for call in sock.sendall.call_args_list]
+        self.assertEqual(sent[:2], [b"admin\n", b"s3cret\n"])
+
     def test_hash_and_arrow_in_output_do_not_finish_command(self):
         code, output, error, sock = self.run_command([
             b"help\r\nprogress #", b"\r\nprogress =>", b"\r\nfinished\r\n" + PROMPT.encode()

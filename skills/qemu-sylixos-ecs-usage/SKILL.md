@@ -50,6 +50,7 @@ metadata:
   - 兼容回环模式：`telnet 127.0.0.1 2324`
 - **FTP 传输**：
   - 推荐工具：`python3 ftp.py <upload|download> <local_path> <remote_path>`（自动匹配当前网络模式）
+  - 需要上传回读校验（`--verify`）、进度、`rmtree` 或重试时，改用 `sylixos` 技能的 `scripts/ftp_client.py`，传入当前模式的地址和端口；用法见该技能的板卡操作参考
   - Host-only 直连：`192.0.2.10:21`（标准被动模式 PASV）
   - 兼容回环代理：`127.0.0.1:2121`（`ftp_proxy.py` 后台转发至内部 `2122`）
 - **GDB 远程调试**：

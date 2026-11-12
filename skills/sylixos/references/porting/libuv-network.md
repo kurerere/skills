@@ -1,10 +1,10 @@
 # libuv 网络行为
 
-仅用于对应 libuv 版本。与通用连接诊断配合时参阅 [socket-errors.md](socket-errors.md)。下面是历史问题线索，须重建当前因果证据。
+仅用于对应 libuv 版本。与通用连接诊断配合时参阅 [socket-errors.md](socket-errors.md)。
 
 ## 非阻塞状态不一致
 
-历史记录提到 SOCK_NONBLOCK/accept4 路径可能只修改 lwIP 状态，而 VFS O_NONBLOCK 未同步。当前应检查创建/accept 返回值、fcntl 状态、实际阻塞行为和 SDK 实现，不能假定所有版本都存在该问题。
+历史记录提到 SOCK_NONBLOCK/accept4 路径可能只修改 lwIP 状态，而 VFS O_NONBLOCK 未同步。当前应检查创建/accept 返回值、fcntl 状态、实际阻塞行为和 SDK 实现。
 
 若证实该路径失效，可评估 libuv 显式 nonblock/cloexec 设置；分别确认每个接口受支持并检查失败返回值，不把非阻塞问题扩展成无条件改写所有描述符。
 

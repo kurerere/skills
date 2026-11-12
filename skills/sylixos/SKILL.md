@@ -31,6 +31,6 @@ description: SylixOS 及 ECS、JSRE、VSOA、RealEvo-Stream、Armory 相关任�
 
 ## 本地资源
 
-`<SKILL_DIR>` 为本文件所在目录；本技能的 FTP/Telnet 工具位于 `scripts/`，使用前读对应参考和 `--help`。
+`<SKILL_DIR>` 为本文件所在目录；本技能的 FTP/Telnet 工具和 FAT32 启动分区检查脚本位于 `scripts/`，使用前读对应参考和 `--help`。
 
 产品手册和 RealEvo 原适配器留在技能之外。`<DATA_ROOT>` 使用 `AGENTS_SKILL_DATA_DIR`，未设置时为 `~/.agents/skill-data`。既有数据目录保持原名；技能安装和更新不迁移或覆盖这些资料。安装此技能不会安装 IDE、SDK、调试器或手册。

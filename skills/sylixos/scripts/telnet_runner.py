@@ -2,6 +2,7 @@ import argparse
 import codecs
 from contextlib import ExitStack
 import math
+import os
 import re
 import shutil
 import socket
@@ -158,7 +159,7 @@ class CommandOutput:
             sink.flush()
 
 
-def run_telnet(ip, command, timeouts, port=23, stream=False, output_path=None):
+def run_telnet(ip, command, timeouts, port=23, stream=False, output_path=None, user="root", password=None):
     if not command:
         raise ValueError("a board command is required")
     command_text = " ".join(command)
@@ -182,9 +183,11 @@ def run_telnet(ip, command, timeouts, port=23, stream=False, output_path=None):
             sock = stack.enter_context(socket.create_connection((ip, port), timeout=timeouts["connect"]))
             stage = "login"
             wait_for(sock, r"login:", timeouts["login"], "login prompt")
-            sock.sendall(b"root\n")
+            sock.sendall(user.encode("utf-8") + b"\n")
             wait_for(sock, r"[Pp]assword:", timeouts["login"], "password prompt")
-            sock.sendall(b"root\n")
+            if password is None:
+                password = os.environ.get("SYLIXOS_PASSWORD", "root")
+            sock.sendall(password.encode("utf-8") + b"\n")
             stage = "shell prompt"
             login_output = wait_for(sock, LOGIN_PROMPT, timeouts["prompt"], "shell prompt after login")
             writer.prompt_fragment = not login_output.endswith((" ", "\t"))
@@ -257,6 +260,12 @@ def make_parser():
             f"(default: {DEFAULT_COMMAND_TIMEOUT:g})"
         ),
     )
+    parser.add_argument(
+        "-u",
+        "--user",
+        default=os.environ.get("SYLIXOS_USER", "root"),
+        help="login user (default: $SYLIXOS_USER or root); password comes from $SYLIXOS_PASSWORD, default root",
+    )
     parser.add_argument("--stream", action="store_true", help="print command output as it arrives")
     parser.add_argument("--output", type=str, help="save command output to a local UTF-8 file (overwrite)")
     parser.add_argument("ip", help="SylixOS board IPv4 address")
@@ -280,5 +289,6 @@ if __name__ == "__main__":
         port=args.port,
         stream=args.stream,
         output_path=args.output,
+        user=args.user,
     )
     sys.exit(exit_code)

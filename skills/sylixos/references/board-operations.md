@@ -4,7 +4,7 @@
 
 ## 选择执行入口
 
-使用当前任务适用的已配置工具。随技能提供的 scripts/ftp_client.py 和 scripts/telnet_runner.py 仅用于 Telnet/FTP：固定 root/root 登录，每次新建连接。其他认证或服务应使用已有且适用的工具，不把额外凭据放进命令和日志。
+使用当前任务适用的已配置工具。随技能提供的 scripts/ftp_client.py 和 scripts/telnet_runner.py 仅用于 Telnet/FTP，每次新建连接。默认以 root/root 登录；目标改过账号时用 `--user <USER>` 或环境变量 `SYLIXOS_USER` 指定用户，密码只从环境变量 `SYLIXOS_PASSWORD` 读取，不写进命令行、日志或报告。其他认证方式或服务使用已有且适用的工具。
 
 `<SKILL_DIR>` 始终指主 SKILL.md 所在目录，而非 references 目录。先看 --help 核对选项；工具选项放在 IP 之前。
 
