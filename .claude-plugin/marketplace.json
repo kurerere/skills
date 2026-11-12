@@ -6,10 +6,11 @@
   "plugins": [
     {
       "name": "develop",
-      "description": "提交、需求完善与写作",
+      "description": "编码、提交、需求完善与写作",
       "source": "./",
       "strict": false,
       "skills": [
+        "./skills/coding",
         "./skills/commit",
         "./skills/tech-docs",
         "./skills/refine-requirements",
