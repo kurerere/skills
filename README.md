@@ -65,7 +65,7 @@ bash scripts/link-agents.sh
 
 仓库不包含底层产品手册。个人检索流程和自写脚本在这里维护，第三方资料留在本地；原有素材保留各自许可。本仓库的来源记录见 [SOURCES.md](SOURCES.md)。
 
-在装有 PyYAML 的 Python 环境中检查技能入口、名称、索引引用和分组完整性：
+在装有 PyYAML 的 Python 环境中检查技能入口、名称、索引引用和分组完整性，并测试 writing 的扫描脚本（需要 ripgrep，未安装时跳过）：
 
 ```bash
 python3 scripts/validate.py
