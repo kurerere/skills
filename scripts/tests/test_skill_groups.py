@@ -55,6 +55,11 @@ class SkillGroupTests(unittest.TestCase):
         path.write_text(path.read_text().replace("description: Test skill", "description: Test skill\nmetadata:\n  internal: true"))
         self.assertEqual(self.inspect(), [])
 
+    def test_local_absolute_link_is_rejected(self):
+        path = self.root / "skills/commit/SKILL.md"
+        path.write_text(path.read_text() + "\n[writing](file:///Users/me/skills/writing/SKILL.md)\n")
+        self.assertTrue(self.inspect())
+
 
 if __name__ == "__main__":
     unittest.main()

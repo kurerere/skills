@@ -96,6 +96,9 @@ def inspect(root):
             for line in file.read_text(encoding='utf-8').splitlines():
                 for m in re.finditer(r'\[[^\]\n]+\]\((<[^>]+>|[^)]+)\)', line):
                     dest = m[1].strip('<>')
+                    if dest.startswith(('file:', '/', '~')):
+                        errors.append(f'{file}: link must be relative to the skill: {dest}')
+                        continue
                     if ':' in dest or dest.startswith(('#', '/', '~', '<')):
                         continue
                     path = dest.split('#')[0]

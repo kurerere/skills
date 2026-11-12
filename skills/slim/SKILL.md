@@ -1,13 +1,13 @@
 ---
 name: slim
-description: 主干文档纪律：当用户想要精简现有文档、删掉代码能推出的细节只留主干时使用。不用于编写操作手册或交付文档（走 tech-docs）。
+description: 主干文档纪律：当用户想要精简 AGENTS.md、ADR、README 导引等仓库内长期协作文档，删掉代码能推出的细节只留主干时使用。不用于编写操作手册或交付文档（走 tech-docs）。
 ---
 
 # 主干文档：只留代码说不出的信息
 
 写给下一个会话的 AI：给出发点和方向，不给细节——细节它从代码现取。没有文档它会去查代码，文档写错它会照着错的做；所以宁可少写，不可写细。
 
-> **适用范围**：本技能仅用于仓库内长期协作文档（如 `AGENTS.md`、ADR、README 导引）。面向运维与外部的操作手册、部署 SOP 与接口文档按 [tech-docs](file:///Users/wangjijie/Code/ai/skills/skills/tech-docs/SKILL.md) 编写，保持独立完整，不在此处删减。
+> **适用范围**：本技能仅用于仓库内长期协作文档（如 `AGENTS.md`、ADR、README 导引）。面向运维与外部的操作手册、部署 SOP 与接口文档按 [tech-docs](../tech-docs/SKILL.md) 编写，保持独立完整，不在此处删减。
 
 ## 写入前三问
 

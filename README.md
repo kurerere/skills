@@ -4,28 +4,28 @@
 
 ## 安装与更新
 
-需要能访问这台 Git 服务器的网络。安装器会显示 `Develop` 和 `Sylixos` 两组，可按组或单项勾选。全局安装放在 `~/.agents/skills`，供 Claude Code、Codex 和 Zcode 使用：
+安装器会显示 `Develop` 和 `Sylixos` 两组，可按组或单项勾选。全局安装放在 `~/.agents/skills`，供 Claude Code、Codex 和 Zcode 使用：
 
 ```bash
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode
+npx skills add kurerere/skills -g -a claude-code codex zcode
 ```
 
 跳过交互、安装 `develop` 组的六项技能：
 
 ```bash
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s coding commit tech-docs refine-requirements slim writing -y
+npx skills add kurerere/skills -g -a claude-code codex zcode -s coding commit tech-docs refine-requirements slim writing -y
 ```
 
 跳过交互、安装 `sylixos` 本体和扩展项（扩展项必须显式点名才装得上）：
 
 ```bash
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git -g -a claude-code codex zcode -s sylixos qemu-sylixos-ecs-usage -y
+npx skills add kurerere/skills -g -a claude-code codex zcode -s sylixos qemu-sylixos-ecs-usage -y
 ```
 
 只查看分组和各组技能（扩展项 `qemu-sylixos-ecs-usage` 不出现在列表中）：
 
 ```bash
-npx skills add http://100.77.36.66:3000/wangjijie/skills.git --list
+npx skills add kurerere/skills --list
 ```
 
 分组由 [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) 声明，使用 skills CLI 的原生分组选择。`-s` 接收技能名称，不接收组名；`-s sylixos` 只安装同名技能。使用 `-y` 而不指定 `-s` 安装其余七项；`-s '*'` 同样跳过扩展项。`qemu-sylixos-ecs-usage` 标记为 `metadata.internal`，不参与默认安装和全量安装，只能 `-s qemu-sylixos-ecs-usage` 显式点名；`INSTALL_INTERNAL_SKILLS=1` 可以让它出现在交互列表中。已有安装保留，分组不改变技能名称、目录或安装后的调用方式。

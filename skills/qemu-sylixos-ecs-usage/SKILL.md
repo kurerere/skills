@@ -1,6 +1,6 @@
 ---
 name: qemu-sylixos-ecs-usage
-description: Operate and troubleshoot the SylixOS ECS QEMU virtual machine (Zynq UltraScale+ ZCU102 Cortex-A53). Use when managing VM lifecycle (start/stop/status), connecting via serial/telnet/FTP, switching network modes (host-only/loopback), or inspecting ECS container runtime.
+description: 操作和排查 SylixOS ECS QEMU 虚拟机（Zynq UltraScale+ ZCU102，Cortex-A53）。启动、停止、查询虚拟机状态，通过串口、Telnet 或 FTP 连接，切换 host-only 与 loopback 网络模式，或检查 ECS 容器运行时时使用。
 metadata:
   internal: true
 ---
@@ -11,7 +11,7 @@ metadata:
 
 ## 环境与路径
 
-- **工作目录**：`/home/wangjijie/.local/share/realevo-simulator2/vm/zcu102-ecs`
+- **工作目录**（下文记作 `<VM_DIR>`）：取环境变量 `SYLIXOS_ECS_VM_DIR`；未设置时查找 `~/.local/share/realevo-simulator2/vm/zcu102-ecs`，仍找不到再询问用户
 - **目标硬件与系统**：Xilinx Zynq UltraScale+ MPSoC (ZCU102) / 4 核 Cortex-A53 / 2 GB RAM / SylixOS GJB 3.3.1 (Professional)
 - **镜像介质**：内核 `bspzynqmpsoc_simulator_zcu102_x64.elf`，运行磁盘 `sdcard-runtime.img`（8 GB 稀疏镜像）
 
@@ -19,7 +19,7 @@ metadata:
 
 ## 核心运维指令
 
-所有脚本位于工作目录 `/home/wangjijie/.local/share/realevo-simulator2/vm/zcu102-ecs` 下，执行前需切换至该目录或使用绝对路径：
+所有脚本位于 `<VM_DIR>` 下，执行前需切换至该目录或使用绝对路径：
 
 | 操作 | 命令 | 完成判定准则 (Completion Criteria) |
 | --- | --- | --- |
@@ -62,7 +62,7 @@ metadata:
 ### 1. 虚拟机生命周期工作流
 1. **状态检查**：运行 `./status.sh`。若已运行则无需重复启动。
 2. **启动**：运行 `./start.sh`。
-   - **就绪判定**：QEMU 启动输出成功后，系统需要数秒启动。通过 `tail -n 20 run/serial.log` 确认看到 `[root@sylixos:/root]#` 提示符，或执行 `python3 vm.py status` 确认进程存在。
+   - **就绪判定**：QEMU 启动输出成功后，系统需要数秒启动。通过 `tail -n 20 run/serial.log` 确认看到 `[root@sylixos:/root]#` 提示符，或执行 `./status.sh` 确认进程存在。
 3. **日常运维/开发**：通过 `./console.sh`、Telnet 或 `ftp.py` 部署程序并调试。
 4. **安全关机**：
    - 优先确保客户机内正在写盘的业务进程已正常退出。
