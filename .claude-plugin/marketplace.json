@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "develop",
-      "description": "编码、提交、需求完善与写作",
+      "description": "编码、提交、需求完善、子代理编排与写作",
       "source": "./",
       "strict": false,
       "skills": [
@@ -16,6 +16,7 @@
         "./skills/refine-requirements",
         "./skills/slim-code",
         "./skills/slim-docs",
+        "./skills/swarm",
         "./skills/writing"
       ]
     },
