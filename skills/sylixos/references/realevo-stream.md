@@ -12,4 +12,4 @@ python3 <DATA_ROOT>/realevo-stream/scripts/cli.py --help
 
 创建工程、改设备配置、构建和部署须属于任务范围。构建入口与顺序遵循当前项目；目标、端口和产物路径使用已确定配置，不持久化凭据。
 
-目标传输与命令读取 [board-operations.md](board-operations.md) 和 [shell.md](shell.md)，调试读取 [gdb.md](gdb.md)。上传不证明运行成功，检查工具返回码、输出、产物及目标行为，报告实际完成阶段。
+目标传输与命令读取 [board-operations.md](board-operations.md) 和 [shell.md](shell.md)，调试读取 [gdb.md](gdb.md)。上传只覆盖传输阶段，运行结论按工具返回码、输出、产物及目标行为判定，报告实际完成阶段。
