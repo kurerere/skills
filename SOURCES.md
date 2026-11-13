@@ -8,7 +8,7 @@
 - GDB、Shell 和 Armory 的项目特例改为有条件的参考。当前项目负责目标地址、架构、构建命令、产物布局与验收标准。
 - 中文提交技能采用个人 `commit`，尊重用户已选暂存范围；不保留旧技能的模型署名或固定正文要求。
 - `coding` 以本地 `solid` 为底稿，按行为变更、缺陷修复、重构和领域规则重组。TDD 与 DDD 的外部来源见 [TDD 参考](skills/coding/references/tdd.md) 和 [DDD 参考](skills/coding/references/ddd.md)。
-- 需求完善技能 `features-full` 改名为 `refine-requirements`，保持手动调用，按薄需求层维护当前意图与边界，不自动展开设计、任务与验证文档。
+- 需求完善技能 `features-full` 改名为 `refine-requirements`，保持手动调用，在 `.requirements/REQ-<主题>.md` 维护主干意图、使用者与边界，细化需求由代码与测试承载；不自动展开设计、任务与验证文档。
 - 文档技能 `tech-docs`（原 `evidence-first-docs`）起于一次昇腾 310B CRI/CDI 挂载手册的三轮返工。保留事实有据、读者能执行和交付自查的意图，按文档类型选择内容，不把当时的步骤与骨架作为固定流程。
 - 写作技能 `writing` 与 `tech-docs` 分工：前者管准确、具体、自然的表达，后者管工程依据与读者任务。早期规则来自已发表文章与自造词较多稿件的比较；现保留“表达有落点、润色不改事实”的意图，词频和扫描只作提示，不用固定白名单代替语境判断。
 

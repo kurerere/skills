@@ -70,7 +70,7 @@ AGENTS_SKILLS_DIR=/绝对路径/skills bash scripts/link-agents.sh
 
 `sylixos` 的手册索引映射见 [手册检索](skills/sylixos/references/docs.md)。已有资料继续放在原来的 `~/.agents/skill-data` 子目录，或由 `AGENTS_SKILL_DATA_DIR` 指定资料根目录，合并技能不重命名资料目录。RealEvo 原适配器仍位于 `<DATA_ROOT>/realevo-stream/scripts`。技能安装不会安装 IDE、MCP、SDK、调试器、手册或虚拟机。
 
-`git-commit`、`ecsd-commit` 合并到 `commit`；需求完善技能使用 `refine-requirements` 并保持手动调用。移植历史经验须核对当前源码、SDK 和目标证据，不能把旧补丁作为通用默认值。
+`git-commit`、`ecsd-commit` 合并到 `commit`；`refine-requirements` 保持手动调用，主干需求维护在 `.requirements/REQ-<主题>.md`，主题较多时由同目录的 `README.md` 提供索引。REQ 记录目标、使用者与关键边界，细化需求由代码与测试承载。移植历史经验须核对当前源码、SDK 和目标证据，不能把旧补丁作为通用默认值。
 
 仓库不包含底层产品手册。个人检索流程和自写脚本在这里维护，第三方资料留在本地；原有素材保留各自许可。本仓库的来源记录见 [SOURCES.md](SOURCES.md)。
 
