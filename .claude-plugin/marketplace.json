@@ -14,6 +14,7 @@
         "./skills/commit",
         "./skills/tech-docs",
         "./skills/refine-requirements",
+        "./skills/slim-code",
         "./skills/slim-docs",
         "./skills/writing"
       ]
