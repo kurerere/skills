@@ -102,8 +102,12 @@ def inspect(root):
                     if ':' in dest or dest.startswith(('#', '/', '~', '<')):
                         continue
                     path = dest.split('#')[0]
-                    if path and not (file.parent / path).exists():
-                        errors.append(f'{file}: missing {dest}')
+                    if path:
+                        target = (file.parent / path).resolve()
+                        if not target.is_relative_to(entry.parent.resolve()):
+                            errors.append(f'{file}: link escapes independently installed skill: {dest}')
+                        elif not target.exists():
+                            errors.append(f'{file}: missing {dest}')
     return errors + inspect_groups(root, skills)
 
 

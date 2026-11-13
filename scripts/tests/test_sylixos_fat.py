@@ -16,7 +16,7 @@ SPEC.loader.exec_module(fat_check)
 SECTOR = 512
 RESERVED = 32
 FAT_SECTORS = 1
-TOTAL = 200
+TOTAL = 160
 PAYLOAD = bytes(range(256)) * 6  # 1536 字节，占 3 簇
 
 
@@ -63,6 +63,57 @@ class FatCheckTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("保留位非零的表项：0", output)
         self.assertIn(hashlib.sha256(PAYLOAD).hexdigest(), output)
+
+    def test_truncated_image_is_rejected(self):
+        with contextlib.redirect_stderr(io.StringIO()):
+            code, output = self.run_check(make_image()[:35 * SECTOR], "/BOOT.BIN")
+        self.assertNotEqual(code, 0)
+        self.assertNotIn("可完整读出", output)
+        self.assertNotIn("SHA-256", output)
+
+    def test_fat_must_cover_declared_clusters(self):
+        image = make_image()
+        struct.pack_into("<I", image, 32, 200)
+        image.extend(bytes(40 * SECTOR))
+        with self.assertRaises(ValueError):
+            fat_check.Volume(image)
+
+    def test_invalid_geometry_is_rejected(self):
+        for offset, fmt, value in ((11, "<H", 0), (13, "<B", 3), (16, "<B", 0), (44, "<I", 150)):
+            image = make_image()
+            struct.pack_into(fmt, image, offset, value)
+            with self.subTest(offset=offset), self.assertRaises(ValueError):
+                fat_check.Volume(image)
+
+    def test_negative_partition_offset_is_rejected(self):
+        with self.assertRaises(ValueError):
+            fat_check.Volume(make_image(), -1)
+
+    def test_out_of_range_chain_is_reported(self):
+        image = make_image()
+        set_entry(image, 3, 150)
+        code, output = self.run_check(image, "/BOOT.BIN")
+        self.assertEqual(code, 1)
+        self.assertIn("越界", output)
+        self.assertNotIn("SHA-256", output)
+
+    def test_short_cluster_read_cannot_pass(self):
+        volume = fat_check.Volume(make_image())
+        read_cluster = volume.cluster
+        volume.cluster = lambda number: read_cluster(number) if number == 2 else b""
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertNotEqual(fat_check.check(volume, ["/BOOT.BIN"]), 0)
+        self.assertNotIn("可完整读出", output.getvalue())
+        self.assertNotIn("SHA-256", output.getvalue())
+
+    def test_invalid_image_cannot_produce_repair(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source, target = Path(folder, "in.img"), Path(folder, "out.img")
+            source.write_bytes(make_image()[:35 * SECTOR])
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(fat_check.main(["fix", str(source), str(target)]), 2)
+            self.assertFalse(target.exists())
 
     def test_reserved_bits_break_strict_reader_but_masked_chain_is_intact(self):
         image = make_image()

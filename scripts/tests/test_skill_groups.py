@@ -60,6 +60,20 @@ class SkillGroupTests(unittest.TestCase):
         path.write_text(path.read_text() + "\n[writing](file:///Users/me/skills/writing/SKILL.md)\n")
         self.assertTrue(self.inspect())
 
+    def test_link_to_another_installed_skill_is_rejected(self):
+        path = self.root / "skills/commit/SKILL.md"
+        path.write_text(path.read_text() + "\n[other](../sylixos/SKILL.md)\n")
+        self.assertTrue(self.inspect())
+
+    def test_skill_resources_work_without_siblings(self):
+        path = self.root / "skills/commit"
+        references = path / "references"
+        references.mkdir()
+        (references / "guide.md").write_text("[entry](../SKILL.md)\n")
+        entry = path / "SKILL.md"
+        entry.write_text(entry.read_text() + "\n[guide](references/guide.md)\n")
+        self.assertEqual(self.inspect(), [])
+
 
 if __name__ == "__main__":
     unittest.main()

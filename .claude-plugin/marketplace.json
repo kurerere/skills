@@ -14,18 +14,17 @@
         "./skills/commit",
         "./skills/tech-docs",
         "./skills/refine-requirements",
-        "./skills/slim",
+        "./skills/slim-docs",
         "./skills/writing"
       ]
     },
     {
       "name": "sylixos",
-      "description": "SylixOS 开发、板卡操作与 ECS QEMU 虚拟机管理",
+      "description": "SylixOS 开发、板卡操作、移植与调试",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/sylixos",
-        "./skills/qemu-sylixos-ecs-usage"
+        "./skills/sylixos"
       ]
     }
   ]

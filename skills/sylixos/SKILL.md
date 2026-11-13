@@ -20,7 +20,7 @@ description: SylixOS 及 ECS、JSRE、VSOA、RealEvo-Stream、Armory 相关任�
 | RealEvo-Stream 工作空间、工程、设备、构建与部署 | [RealEvo-Stream](references/realevo-stream.md) |
 | Armory 制品打包、安装验证或发布 | [Armory](references/armory.md) |
 
-查询手册只执行查询。跨分支任务读取涉及的参考，复用已确定的目标配置。QEMU 虚拟机的启动、停止和网络模式管理继续使用独立的 `$qemu-sylixos-ecs-usage`；对 QEMU 内的目标命令仍按本技能的板卡与 Shell 参考执行。
+查询手册只执行查询。跨分支任务读取涉及的参考，复用已确定的目标配置。对虚拟机内的目标命令也按板卡与 Shell 参考执行；虚拟机生命周期与网络配置以当前项目提供的工具和约定为准。
 
 ## 共同约束
 

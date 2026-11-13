@@ -18,6 +18,8 @@ BAD = 0x0FFFFFF7
 
 class Volume:
     def __init__(self, data, offset=0):
+        if offset < 0:
+            raise ValueError("分区偏移不能为负数")
         self.data = data
         self.offset = offset
         bpb = data[offset:offset + 512]
@@ -29,30 +31,47 @@ class Volume:
         total16, = struct.unpack_from("<H", bpb, 19)
         total32, = struct.unpack_from("<I", bpb, 32)
         fat16_size, = struct.unpack_from("<H", bpb, 22)
-        if not self.bytes_per_sector or not self.sectors_per_cluster or fat16_size or not self.fat_sectors:
+        if (self.bytes_per_sector not in (512, 1024, 2048, 4096)
+                or not 1 <= self.sectors_per_cluster <= 128
+                or self.sectors_per_cluster & (self.sectors_per_cluster - 1)
+                or not self.reserved or not self.num_fats
+                or fat16_size or not self.fat_sectors):
             raise ValueError("不是 FAT32 引导扇区（BPB 字段不符）")
         self.total_sectors = total32 or total16
+        if offset + self.total_sectors * self.bytes_per_sector > len(data):
+            raise ValueError("镜像已截断：实际长度小于 BPB 声明的分区范围")
         self.cluster_size = self.bytes_per_sector * self.sectors_per_cluster
         self.fat_bytes = self.fat_sectors * self.bytes_per_sector
         self.fat_start = offset + self.reserved * self.bytes_per_sector
         self.data_start = self.fat_start + self.num_fats * self.fat_bytes
         data_sectors = self.total_sectors - (self.reserved + self.num_fats * self.fat_sectors)
+        if data_sectors <= 0:
+            raise ValueError("BPB 数据区范围无效")
         self.cluster_count = data_sectors // self.sectors_per_cluster
-        self.entries = min(self.fat_bytes // 4, self.cluster_count + 2)
+        self.entries = self.cluster_count + 2
+        if self.entries > self.fat_bytes // 4:
+            raise ValueError("FAT 容量不足以索引 BPB 声明的数据簇")
+        if not 2 <= self.root_cluster < self.entries:
+            raise ValueError("根目录起始簇越界")
 
     def fat(self, index=0):
         start = self.fat_start + index * self.fat_bytes
         return list(struct.unpack_from(f"<{self.entries}I", self.data, start))
 
     def cluster(self, number):
+        if not 2 <= number < self.entries:
+            raise ValueError(f"簇号 {number:#x} 越界")
         start = self.data_start + (number - 2) * self.cluster_size
-        return self.data[start:start + self.cluster_size]
+        block = self.data[start:start + self.cluster_size]
+        if len(block) != self.cluster_size:
+            raise ValueError(f"簇 {number} 数据不完整")
+        return block
 
     def chain(self, start, fat):
         """沿链行走，返回 (簇列表, 断点说明或 None)。表项按低 28 位解释。"""
         clusters, seen, current = [], set(), start
         while True:
-            if current < 2 or current >= self.cluster_count + 2:
+            if current < 2 or current >= min(self.entries, len(fat)):
                 return clusters, f"簇号 {current:#x} 越界"
             if current in seen:
                 return clusters, f"簇 {current} 处成环"
@@ -81,7 +100,9 @@ def strict_break(volume, start, fat):
 
 
 def dir_entries(volume, fat, cluster):
-    clusters, _ = volume.chain(cluster, fat)
+    clusters, broken = volume.chain(cluster, fat)
+    if broken:
+        raise ValueError(f"目录簇链损坏：{broken}")
     raw = b"".join(volume.cluster(c) for c in clusters)
     long_parts = []
     for pos in range(0, len(raw), 32):
@@ -151,9 +172,11 @@ def check(volume, paths):
             raw_text = f"{raw:#010x}" if raw is not None else "越界"
             print(f"  按 32 位整值判断：第 {count} 簇（簇号 {cluster}）表项 {raw_text} 非法，约读到 {readable} 字节后截断")
             problems = True
-        else:
+        elif not broken and len(clusters) >= needed and len(content) == size:
             print("  按 32 位整值判断：可完整读出")
-        if broken or len(clusters) < needed:
+        if broken or len(clusters) < needed or len(content) != size:
+            if len(content) != size:
+                print(f"  文件数据不完整：期望 {size} 字节，实际 {len(content)} 字节")
             problems = True
         else:
             print(f"  按掩码重建 SHA-256：{hashlib.sha256(content).hexdigest()}")

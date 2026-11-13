@@ -1,8 +1,8 @@
 import shutil
-import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from shell_support import BASH, run_shell
 
 
 SCRIPT = Path(__file__).resolve().parents[2] / "skills/writing/scripts/check.sh"
@@ -13,7 +13,7 @@ def scan(text):
     with tempfile.NamedTemporaryFile("w", suffix=".md", encoding="utf-8", delete=False) as file:
         file.write(text + "\n")
     try:
-        output = subprocess.run(["bash", str(SCRIPT), file.name], capture_output=True, text=True, check=True).stdout
+        output = run_shell(SCRIPT, file.name, check=True).stdout
     finally:
         Path(file.name).unlink()
     hits, section = {}, None
@@ -26,7 +26,7 @@ def scan(text):
     return hits
 
 
-@unittest.skipUnless(shutil.which("rg"), "需要 ripgrep")
+@unittest.skipUnless(BASH and shutil.which("rg"), "需要 Bash 和 ripgrep")
 class WritingCheckTests(unittest.TestCase):
     def assertHit(self, text, section):
         self.assertTrue(scan(text)[section], f"第 {section} 段应命中：{text}")
