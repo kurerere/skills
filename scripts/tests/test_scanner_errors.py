@@ -7,7 +7,7 @@ from shell_support import BASH, run_shell
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS = [ROOT / "skills" / name / "scripts/check.sh" for name in ("writing", "refine-requirements")]
+SCRIPTS = [ROOT / "skills/refine-requirements/scripts/check.sh"]
 
 
 @unittest.skipUnless(BASH, "需要 Bash")

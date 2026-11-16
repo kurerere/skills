@@ -20,7 +20,7 @@ class LinkAgentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             source = root / "source"
-            for name in ("coding", "commit", "writing", "foreign"):
+            for name in ("coding", "commit", "tech-docs", "foreign"):
                 skill = source / name
                 skill.mkdir(parents=True)
                 (skill / "SKILL.md").write_text(name, encoding="utf-8")
@@ -32,13 +32,13 @@ class LinkAgentTests(unittest.TestCase):
             (targets / "coding").symlink_to(own, target_is_directory=True)
             (targets / "commit").mkdir()
             (targets / "commit/keep.txt").write_text("keep", encoding="utf-8")
-            (targets / "writing").symlink_to(root / "gone", target_is_directory=True)
+            (targets / "tech-docs").symlink_to(root / "gone", target_is_directory=True)
             env = dict(os.environ, AGENTS_SKILLS_DIR=source.as_posix(), AGENTS_LINK_HOME=home.as_posix())
             result = run_shell(SCRIPT, env=env)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual((targets / "coding").resolve(), own.resolve())
             self.assertEqual((targets / "commit/keep.txt").read_text(), "keep")
-            self.assertTrue((targets / "writing").is_symlink())
-            self.assertFalse((targets / "writing").exists())
+            self.assertTrue((targets / "tech-docs").is_symlink())
+            self.assertFalse((targets / "tech-docs").exists())
             self.assertFalse((targets / "foreign").exists())
             self.assertTrue((home / ".claude/skills/coding/SKILL.md").is_file())

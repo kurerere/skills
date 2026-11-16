@@ -57,7 +57,7 @@ class SkillGroupTests(unittest.TestCase):
 
     def test_local_absolute_link_is_rejected(self):
         path = self.root / "skills/commit/SKILL.md"
-        path.write_text(path.read_text() + "\n[writing](file:///Users/me/skills/writing/SKILL.md)\n")
+        path.write_text(path.read_text() + "\n[tech-docs](file:///Users/me/skills/tech-docs/SKILL.md)\n")
         self.assertTrue(self.inspect())
 
     def test_link_to_another_installed_skill_is_rejected(self):

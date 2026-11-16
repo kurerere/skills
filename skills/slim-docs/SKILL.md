@@ -87,4 +87,3 @@ description: 主干文档纪律：当用户想要精简 AGENTS.md、ADR、README
 
 - `refine-requirements`：显式调用时维护薄需求层，记录目标行为、必要边界和未决问题，不扩写配套材料。
 - `tech-docs`：手册与 SOP 保留读者执行所需信息，按任务选择结构；本技能只管仓库内长期协作主干。
-- `writing`：已安装时可结合其语言建议，不为固定措辞改变事实或约束。
