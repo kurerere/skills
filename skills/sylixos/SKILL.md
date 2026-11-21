@@ -13,8 +13,9 @@ description: SylixOS 及 ECS、JSRE、VSOA、RealEvo-Stream、Armory 相关任�
 | --- | --- |
 | SylixOS 编程/API/Shell、系统配置，ECS、JSRE、VSOA 或 Armory 手册 | [在线优先的文档查询](references/docs.md) |
 | C/C++ 库、命令行工具和运行时移植，平台差异与兼容性审查 | [移植](references/porting.md)，再按问题读取其中专项 |
-| 发送目标命令、传输文件、部署或运行程序 | [板卡操作](references/board-operations.md) |
-| 编写目标命令、startup.sh、shfile 或 system/popen 命令字符串 | [目标 Shell](references/shell.md)，操作板卡时也必须读取 |
+| 发送目标命令、部署或运行程序 | 先读 [目标 Shell](references/shell.md)，再读 [板卡操作](references/board-operations.md) |
+| 仅传输文件或管理远端文件（不下发 Shell 命令） | [板卡操作](references/board-operations.md) |
+| 编写目标命令、startup.sh、shfile 或 system/popen 命令字符串 | [目标 Shell](references/shell.md) |
 | 远程 GDB、符号匹配、线程与崩溃诊断 | [调试](references/gdb.md)，目标侧命令另读板卡与 Shell 参考 |
 | 板子启动失败、SD 启动盘与启动分区文件系统排查修复 | [启动介质](references/boot-media.md) |
 | RealEvo-Stream 工作空间、工程、设备、构建与部署 | [RealEvo-Stream](references/realevo-stream.md) |
@@ -31,6 +32,6 @@ description: SylixOS 及 ECS、JSRE、VSOA、RealEvo-Stream、Armory 相关任�
 
 ## 本地资源
 
-`<SKILL_DIR>` 为本文件所在目录；本技能的 FTP/Telnet 工具和 FAT32 启动分区检查脚本位于 `scripts/`，使用前读对应参考和 `--help`。
+`<SKILL_DIR>` 为本文件所在目录；本技能的 FTP/Telnet 工具和 FAT32 启动分区检查脚本位于 `scripts/`，按对应参考使用；选项不明确或版本不符时查看 `--help`。
 
 产品手册和 RealEvo 原适配器留在技能之外。`<DATA_ROOT>` 使用 `AGENTS_SKILL_DATA_DIR`，未设置时为 `~/.agents/skill-data`。既有数据目录保持原名；技能安装和更新不迁移或覆盖这些资料。安装此技能不会安装 IDE、SDK、调试器或手册。

@@ -19,6 +19,8 @@ DEFAULT_COMMAND_TIMEOUT = 30.0
 RECEIVE_SIZE = 65536
 PROMPT_WINDOW = 4096
 LOGIN_PROMPT = re.compile(r"(?m)^[^\r\n]{0,1024}(?:#|=>)[ \t]*\Z")
+CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
+TINY_SHELL_TOKENS = re.compile(r'"(?:[^"\\]|\\.)*"|(?P<operator>&&|\|\||<<|\$\(|[|&;^`"])')
 
 
 class ReceiveResult(NamedTuple):
@@ -159,10 +161,29 @@ class CommandOutput:
             sink.flush()
 
 
-def run_telnet(ip, command, timeouts, port=23, stream=False, output_path=None, user="root", password=None):
-    if not command:
-        raise ValueError("a board command is required")
+def validate_command(text, ttinyshell):
+    if not text.strip() or CONTROL_CHARS.search(text):
+        raise ValueError("expected one non-empty command line without control characters; upload scripts or files instead")
+    if ttinyshell:
+        for match in TINY_SHELL_TOKENS.finditer(text):
+            token = match["operator"]
+            if token:
+                raise ValueError(f"unsupported syntax in --ttinyshell mode: {token!r}; use separate calls or upload a script")
+        if text.rstrip().endswith("\\"):
+            raise ValueError("line continuation is not supported in --ttinyshell mode")
+
+
+def run_telnet(ip, command, timeouts, port=23, stream=False, output_path=None, user="root", password=None,
+               ttinyshell=False, log_only=False):
     command_text = " ".join(command)
+    try:
+        validate_command(command_text, ttinyshell)
+        if log_only and (output_path is None or stream):
+            raise ValueError("--log-only requires --output and cannot be combined with --stream")
+    except ValueError as error:
+        print(f"telnet_runner: {error}; nothing sent", file=sys.stderr)
+        return 1
+
     stage = "local output"
     try:
         with ExitStack() as stack:
@@ -198,7 +219,7 @@ def run_telnet(ip, command, timeouts, port=23, stream=False, output_path=None, u
                 result = recv_until(sock, pattern, timeouts["command"], on_text=writer.feed, prompt_prefix=prefix)
             finally:
                 writer.finish()
-                if not stream:
+                if not stream and not log_only:
                     capture.seek(0)
                     shutil.copyfileobj(capture, sys.stdout)
                     sys.stdout.flush()
@@ -222,7 +243,11 @@ def run_telnet(ip, command, timeouts, port=23, stream=False, output_path=None, u
 
 def make_parser():
     parser = argparse.ArgumentParser(
-        description="Run one command through a SylixOS Telnet shell."
+        description=(
+            "Send one physical command line through a new SylixOS Telnet session. "
+            "The board parses the command; use a file transfer tool for scripts and data. "
+            "A zero exit status means the shell prompt returned, not that the remote command succeeded."
+        )
     )
     parser.add_argument(
         "--port",
@@ -268,9 +293,13 @@ def make_parser():
     )
     parser.add_argument("--stream", action="store_true", help="print command output as it arrives")
     parser.add_argument("--output", type=str, help="save command output to a local UTF-8 file (overwrite)")
+    parser.add_argument("--ttinyshell", action="store_true",
+                        help="reject common shell operators outside double quotes and trailing continuations")
+    parser.add_argument("--log-only", action="store_true",
+                        help="save output without writing it to stdout; requires --output and excludes --stream")
     parser.add_argument("ip", help="SylixOS board IPv4 address")
     parser.add_argument(
-        "command", nargs=argparse.REMAINDER, help="one command sent to the board"
+        "command", nargs=argparse.REMAINDER, help="one non-empty line, preferably passed as a single host argument"
     )
     return parser
 
@@ -290,5 +319,7 @@ if __name__ == "__main__":
         stream=args.stream,
         output_path=args.output,
         user=args.user,
+        ttinyshell=args.ttinyshell,
+        log_only=args.log_only,
     )
     sys.exit(exit_code)

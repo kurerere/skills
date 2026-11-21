@@ -25,12 +25,12 @@ class TelnetTests(unittest.TestCase):
         sock.recv.side_effect = [b"login: ", b"password: ", PROMPT.encode(), *chunks]
         return sock
 
-    def run_command(self, chunks, **options):
+    def run_command(self, chunks, command="help", **options):
         sock = self.connection(chunks)
         stdout, stderr = io.StringIO(), io.StringIO()
         with patch.object(telnet.socket, "create_connection", return_value=sock), \
                 contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-            result = telnet.run_telnet("127.0.0.1", ["help"], dict(TIMEOUTS, command=1), **options)
+            result = telnet.run_telnet("127.0.0.1", [command], dict(TIMEOUTS, command=1), **options)
         return result, stdout.getvalue(), stderr.getvalue(), sock
 
     def test_default_login_is_root(self):
@@ -44,6 +44,43 @@ class TelnetTests(unittest.TestCase):
             _, _, _, sock = self.run_command([b"help\r\n" + PROMPT.encode()], user="admin")
         sent = [call.args[0] for call in sock.sendall.call_args_list]
         self.assertEqual(sent[:2], [b"admin\n", b"s3cret\n"])
+
+    def assert_rejected_before_io(self, command, **options):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "output.txt"
+            path.write_text("keep", encoding="utf-8")
+            error = io.StringIO()
+            with patch.object(telnet.socket, "create_connection") as connect, contextlib.redirect_stderr(error):
+                code = telnet.run_telnet("127.0.0.1", [command], TIMEOUTS, output_path=path, **options)
+            self.assertEqual(code, 1)
+            self.assertIn("nothing sent", error.getvalue())
+            connect.assert_not_called()
+            self.assertEqual(path.read_text(encoding="utf-8"), "keep")
+
+    def test_rejects_multiple_lines_and_control_input_before_io(self):
+        for command in ("", " ", "help\nhelp", "help\rhelp", "help\x18", "help\x00"):
+            with self.subTest(command=command):
+                self.assert_rejected_before_io(command)
+
+    def test_ttinyshell_mode_rejects_common_unsupported_automation_shapes(self):
+        for command in ("help && help", "help || help", "help | filter", "help &", "help ^", "help; help",
+                        "help <<EOF", "help 2>&1", "help $(other)", "help `other`", "help \\",
+                        'help "unclosed'):
+            with self.subTest(command=command):
+                self.assert_rejected_before_io(command, ttinyshell=True)
+
+    def test_ttinyshell_mode_preserves_quoted_arguments_and_known_redirection(self):
+        command = 'tool "/work/a & b|c.txt" 8>/work/log.txt'
+        code, output, error, sock = self.run_command(
+            [command.encode() + b"\r\n" + PROMPT.encode()], command=command, ttinyshell=True)
+        self.assertEqual((code, output, error), (0, "", ""))
+        sock.sendall.assert_called_with(command.encode() + b"\n")
+
+    def test_other_shell_mode_retains_single_line_operator_text(self):
+        command = "help | filter"
+        code, _, _, sock = self.run_command([PROMPT.encode()], command=command)
+        self.assertEqual(code, 0)
+        sock.sendall.assert_called_with(command.encode() + b"\n")
 
     def test_hash_and_arrow_in_output_do_not_finish_command(self):
         code, output, error, sock = self.run_command([
@@ -114,7 +151,32 @@ class TelnetTests(unittest.TestCase):
                 result = telnet.run_telnet("127.0.0.1", ["help"], TIMEOUTS, stream=True, output_path=path)
             self.assertEqual(result, 0)
             self.assertEqual(path.read_text(), "first\nsecond\n")
-        self.assertEqual(stdout.getvalue(), "first\nsecond\n")
+            self.assertEqual(stdout.getvalue(), "first\nsecond\n")
+
+    def test_log_only_keeps_full_output_without_replaying_stdout(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "output.txt"
+            payload = b"x" * 65536
+            code, output, error, _ = self.run_command(
+                [b"help\r\n", payload, b"\r\n" + PROMPT.encode()], log_only=True, output_path=path)
+            self.assertEqual((code, output, error), (0, "", ""))
+            self.assertEqual(path.read_bytes(), payload + b"\n")
+
+    def test_log_only_preserves_partial_output_and_disconnect_diagnostic(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "output.txt"
+            code, output, error, _ = self.run_command(
+                [b"help\r\npartial", b""], log_only=True, output_path=path)
+            self.assertEqual((code, output), (1, ""))
+            self.assertIn("remote command result is unknown", error)
+            self.assertEqual(path.read_bytes(), b"partial")
+
+    def test_log_only_invalid_combinations_do_not_open_connection(self):
+        self.assert_rejected_before_io("help", log_only=True, stream=True)
+        with patch.object(telnet.socket, "create_connection") as connect, \
+                contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(telnet.run_telnet("127.0.0.1", ["help"], TIMEOUTS, log_only=True), 1)
+        connect.assert_not_called()
 
     def test_split_utf8_crlf_and_prompt(self):
         data = "help\r\n中文\r\n".encode() + PROMPT.encode()
