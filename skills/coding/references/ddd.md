@@ -26,5 +26,5 @@
 
 ## 来源
 
-- 责任驱动设计、实体和值对象、聚合与不变量沿用本地 `solid` 的对象设计参考，并修正了聚合示例中先修改后校验的失败路径。
+- 责任驱动设计、实体和值对象、聚合与不变量沿用本地 `solid` 的对象设计参考。
 - 从领域词汇、状态与规则推导上下文边界和最小实现的做法参考 [eralmansouri DDD](https://github.com/eralmansouri/skills/blob/main/skills/domain-driven-design/SKILL.md)。
