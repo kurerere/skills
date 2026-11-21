@@ -1,7 +1,7 @@
 """只读检查 FAT32 启动分区镜像，或生成修正保留位后的副本。
 
 用法：
-  python3 fat_check.py check <分区镜像> [--offset 字节] [--path /BOOT.BIN ...]
+  python3 fat_check.py check <分区镜像> [--offset 字节] [--path /BOOT.BIN]...
   python3 fat_check.py fix <分区镜像> <输出镜像> [--offset 字节]
 
 check 不修改输入；fix 只写新文件：清零全部 FAT 表项的高 4 位保留位，并以第一份 FAT 为准同步其余副本。
